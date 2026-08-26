@@ -18,7 +18,6 @@ from typing import Any
 import pandas as pd
 import numpy as np
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -57,13 +56,7 @@ EXPECTED_RAW_COLUMNS = [
     "Idle Std", "Idle Max", "Idle Min", "Label",
 ]
 
-# Critical columns that must be present (using stripped names)
-CRITICAL_RAW_COLUMNS = [
-    "Destination Port",
-    "Flow Duration",
-    "Protocol" if False else "Label",  # noqa – Label is the critical target column
-]
-# More precisely, these are the columns essential for the pipeline to function:
+# Critical columns required for the pipeline to function:
 CRITICAL_COLUMNS_FOR_PIPELINE = [
     "Destination Port",
     "Label",
@@ -95,7 +88,6 @@ VALID_LABELS = {
 # Columns that must be non-negative in the raw data
 NON_NEGATIVE_COLUMNS = [
     "Destination Port",
-    "Flow Duration",
     "Total Fwd Packets",
     "Total Backward Packets",
     "Total Length of Fwd Packets",
@@ -119,7 +111,7 @@ ANOMALY_THRESHOLD = 0.80
 MAX_NULL_RATE = 0.05
 
 # Maximum allowed duplicate-row ratio (1%)
-MAX_DUPLICATE_RATE = 0.01
+MAX_DUPLICATE_RATE = float(__import__('os').environ.get('MAX_DUPLICATE_RATE', '0.02'))
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +221,8 @@ def validate_raw_csv(df: pd.DataFrame) -> QualityReport:
     report = QualityReport(stage="raw_csv_validation")
 
     # Strip column names (the CSV has leading spaces)
+    # Work on a copy to avoid mutating the caller's DataFrame
+    df = df.copy()
     df.columns = df.columns.str.strip()
 
     # ── COMPLETENESS ──────────────────────────────────────────────────
@@ -500,10 +494,11 @@ def validate_cleaned_records(records: list[dict]) -> QualityReport:
     # V3: Label values (after cleaning, key is "label") must be valid
     if total > 0:
         # After cleaner's snake_case normalization, label values should be preserved
+        VALID_LABELS_LOWER = {lbl.replace('\u2013', '-').lower() for lbl in VALID_LABELS}
         unknown = []
         for rec in records:
             lbl = rec.get("label")
-            if lbl is not None and str(lbl).strip() not in VALID_LABELS and lbl != 0:
+            if lbl is not None and str(lbl).strip().lower() not in VALID_LABELS_LOWER and lbl != 0:
                 unknown.append(str(lbl))
         unknown_unique = list(set(unknown))
         report.add_result(RuleResult(

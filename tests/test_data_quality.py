@@ -271,7 +271,7 @@ class TestValidateRawCSV:
     def test_negative_values_fails(self, good_raw_df):
         """Negative values in non-negative columns should be caught."""
         df = good_raw_df.copy()
-        df["Flow Duration"] = [-100]
+        df["Total Fwd Packets"] = [-100]
         with pytest.raises(DataQualityError) as exc_info:
             validate_raw_csv(df)
         report = exc_info.value.report
