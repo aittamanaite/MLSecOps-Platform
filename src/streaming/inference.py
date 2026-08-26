@@ -153,7 +153,7 @@ def run_inference(max_messages: int | None = None, idle_polls_limit: int | None 
 
                 for _tp, messages in clean_msgs.items():
                     for msg in messages:
-                        if messages_processed >= max_messages:
+                        if max_messages is not None and messages_processed >= max_messages:
                             break
 
                         record = msg.value
@@ -172,7 +172,7 @@ def run_inference(max_messages: int | None = None, idle_polls_limit: int | None 
 
                         messages_processed += 1
 
-                    if messages_processed >= max_messages:
+                    if max_messages is not None and messages_processed >= max_messages:
                         break
 
                 if batch_lines:

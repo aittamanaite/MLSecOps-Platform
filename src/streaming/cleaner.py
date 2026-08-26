@@ -218,7 +218,7 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
 
                 for _tp, messages in raw_msgs.items():
                     for msg in messages:
-                        if messages_processed >= max_messages:
+                        if max_messages is not None and messages_processed >= max_messages:
                             break
 
                         cleaned_data = clean_record(msg.value)
@@ -227,7 +227,7 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
                         messages_processed += 1
                         attacks_seen += int(cleaned_data.get("is_attack", 0) or 0)
 
-                    if messages_processed >= max_messages:
+                    if max_messages is not None and messages_processed >= max_messages:
                         break
 
                 # Écriture groupée : bien plus rapide que ligne par ligne

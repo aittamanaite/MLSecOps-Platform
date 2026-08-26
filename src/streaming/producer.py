@@ -125,10 +125,15 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
 
     if max_records is None:
         max_records = int(os.getenv("STREAM_MAX_RECORDS", "0"))
-    if max_records <= 0:
+    if max_records is not None and max_records <= 0:
         max_records = None  # 0 => aucune limite : on lit tout le dataset brut
     if chunk_stride is None:
         chunk_stride = max(1, int(os.getenv("PRODUCER_CHUNK_STRIDE", "1")))
+
+    # Défense défensive : None signifie "illimité" partout (jamais de comparaison
+    # int >= None, qui lève TypeError).
+    def _under_limit(published: int) -> bool:
+        return max_records is None or published < max_records
 
     csv_files = sorted(glob.glob(os.path.join(data_dir, "*.csv")))
     if not csv_files:
@@ -150,10 +155,10 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
     try:
         # Round-robin : on prend un chunk de chaque fichier à tour de rôle
         # (max_records=None => on lit intégralement tous les fichiers)
-        while iterators and (max_records is None or total_published < max_records):
+        while iterators and _under_limit(total_published_param := total_published):
             still_active = []
             for name, reader in iterators:
-                if total_published >= max_records:
+                if not _under_limit(total_published):
                     still_active.append((name, reader))
                     continue
                 try:
@@ -168,10 +173,13 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
                 chunk = _sanitize_chunk(chunk)
                 records = chunk.to_dict(orient="records")
 
-                # Ne pas dépasser l'objectif
-                remaining = max_records - total_published
-                if len(records) > remaining:
-                    records = records[:remaining]
+                # Ne pas dépasser l'objectif (None => illimité : on garde tout)
+                if max_records is None:
+                    remaining = len(records)
+                else:
+                    remaining = max_records - total_published
+                    if len(records) > remaining:
+                        records = records[:remaining]
 
                 for record in records:
                     producer.send(topic, value=record)
@@ -194,8 +202,9 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
 
                 if total_published % 20000 < len(records):
                     elapsed = max(time.time() - start, 1e-6)
+                    target_str = "ILLIMITÉ" if max_records is None else f"{max_records}"
                     logging.info(
-                        f"Progression : {total_published}/{max_records} événements publiés "
+                        f"Progression : {total_published}/{target_str} événements publiés "
                         f"({total_published/elapsed:.0f} msg/s)"
                     )
 
