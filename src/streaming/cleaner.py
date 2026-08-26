@@ -1,22 +1,14 @@
 import os
 import json
 import logging
-<<<<<<< HEAD
-import time
-=======
 import math
 import time
 
->>>>>>> 6c556c4 (Initial commit)
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-<<<<<<< HEAD
-def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
-    """Create consumer and producer with retries until broker is available."""
-=======
 # Valeurs textuelles invalides rencontrées dans CIC-IDS2017
 INVALID_STRINGS = {"", "infinity", "-infinity", "inf", "-inf", "nan", "null", "none", "na", "n/a"}
 
@@ -29,7 +21,6 @@ def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
     jamais retourner plus de 500 messages. On l'augmente ici et on boucle.
     """
     max_poll_records = int(os.getenv("KAFKA_MAX_POLL_RECORDS", "5000"))
->>>>>>> 6c556c4 (Initial commit)
     end_time = time.time() + timeout_s
     attempt = 0
     while True:
@@ -39,20 +30,6 @@ def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
             consumer = KafkaConsumer(
                 os.getenv("KAFKA_RAW_TOPIC", "raw-logs"),
                 bootstrap_servers=[bootstrap_servers],
-<<<<<<< HEAD
-                group_id="cleaner-group",
-                auto_offset_reset="earliest",
-                enable_auto_commit=True,
-                value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-            )
-            producer = KafkaProducer(
-                bootstrap_servers=[bootstrap_servers],
-                value_serializer=lambda v: json.dumps(v, default=str).encode('utf-8')
-            )
-            # quick check
-            producer.bootstrap_connected()
-            logging.info("Kafka consumer/producer bootstrap succeeded")
-=======
                 group_id=os.getenv("KAFKA_CLEANER_GROUP", "cleaner-group"),
                 auto_offset_reset="earliest",
                 enable_auto_commit=True,
@@ -78,7 +55,6 @@ def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
             # quick check
             producer.bootstrap_connected()
             logging.info(f"Kafka consumer/producer bootstrap succeeded (max_poll_records={max_poll_records})")
->>>>>>> 6c556c4 (Initial commit)
             return consumer, producer
         except KafkaError as e:
             remaining = end_time - time.time()
@@ -89,26 +65,19 @@ def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
             sleep = min(5 * (2 ** (attempt - 1)), remaining, 10)
             time.sleep(sleep)
 
-<<<<<<< HEAD
-def clean_record(record):
-    """
-    Simule une fonction de nettoyage : 
-    - Formate les colonnes
-    - Supprime ou remplace les valeurs invalides
-    """
-    cleaned = {}
-    for k, v in record.items():
-        # Standardisation des noms de colonnes (minuscules, sans espaces)
-        new_key = str(k).strip().lower().replace(" ", "_")
-        
-        # Filtrage basique (ex: on force le port en entier, on remplace les None par 0)
-        if v is None:
-            v = 0
-        cleaned[new_key] = v
-        
-    return cleaned
 
-=======
+def _normalize_label(label: str) -> str:
+    """
+    Uniformise le label d'attaque : les tirets exotiques (– — ‐ …) et le caractère
+    de remplacement U+FFFD (présent tel quel dans le CSV : "Web Attack U+FFFD Brute Force")
+    deviennent un '-' simple, et les espaces multiples sont réduits. Sans cela on
+    obtient plusieurs variantes du même label.
+    """
+    text = str(label)
+    for ch in ("\u2013", "\u2014", "\u2010", "\u2011", "\u2012", "\ufffd", "\x96"):
+        text = text.replace(ch, "-")
+    return " ".join(text.split())
+
 
 def _coerce_value(value):
     """Normalise une valeur : None/inf/NaN -> 0, chaînes numériques -> nombre."""
@@ -126,7 +95,6 @@ def _coerce_value(value):
         stripped = value.strip()
         if stripped.lower() in INVALID_STRINGS:
             return 0
-        # tente une conversion numérique (les CSV donnent souvent des str)
         try:
             num = float(stripped)
             if math.isnan(num) or math.isinf(num):
@@ -135,26 +103,6 @@ def _coerce_value(value):
         except ValueError:
             return stripped
     return value
-
-
-def _normalize_label(label: str) -> str:
-    """
-    Uniformise le label d'attaque : les tirets exotiques (– — ‐ et le caractère
-    de remplacement U+FFFD dû à l'encodage latin-1) deviennent un '-' simple,
-    et les espaces multiples sont réduits. Sans cela, on obtient plusieurs
-    variantes du même label ("Web Attack – Brute Force" vs "Web Attack ? Brute Force").
-    """
-    text = str(label)
-    # Caractères à transformer en tiret simple :
-    #  – — ‐ ‑ ‒  (tirets typographiques)
-    #  U+FFFD      (caractère de remplacement : le fichier CSV contient déjà
-    #               "Web Attack U+FFFD Brute Force" à la place du tiret)
-    #  \x96        (0x96 lu en latin-1)
-    for ch in ("\u2013", "\u2014", "\u2010", "\u2011", "\u2012", "\ufffd", "\x96"):
-        text = text.replace(ch, "-")
-    text = " ".join(text.split())
-    # supprime un tiret isolé en trop : "Web Attack - Brute Force" reste lisible
-    return text.strip()
 
 
 def clean_record(record):
@@ -166,7 +114,7 @@ def clean_record(record):
     """
     cleaned = {}
     for k, v in record.items():
-        # Standardisation des noms de colonnes (minuscules, sans espaces ni '/')
+        # Standardisation des noms de colonnes
         new_key = (
             str(k)
             .strip()
@@ -181,7 +129,6 @@ def clean_record(record):
         cleaned[new_key] = _coerce_value(v)
 
     # --- Dérivation de la cible pour le modèle ML ---
-    # Sans cela, inference.py lit `is_attack` qui n'existe pas => 0 anomalie détectée.
     label = _normalize_label(cleaned.get("label", ""))
     if label:
         cleaned["label"] = label
@@ -193,21 +140,10 @@ def clean_record(record):
     return cleaned
 
 
->>>>>>> 6c556c4 (Initial commit)
 def get_project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
 
-<<<<<<< HEAD
-def run_cleaner(max_messages=1000):
-    """
-    Consomme un micro-batch de messages depuis 'raw-logs', les nettoie, 
-    et les republie dans 'cleaned-logs'.
-    """
-    bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "redpanda:9092")
-    cleaned_topic = os.getenv("KAFKA_CLEANED_TOPIC", "cleaned-logs")
-    
-=======
 def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = None):
     """
     Consomme le flux 'raw-logs' en BOUCLE, nettoie les événements,
@@ -220,6 +156,7 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
 
     Args:
         max_messages: nombre maximum d'événements à traiter (défaut STREAM_MAX_RECORDS).
+                      0 => illimité (on consomme tout ce qui est publié).
         idle_polls_limit: nombre de polls vides consécutifs avant d'arrêter.
     """
     bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "redpanda:9092")
@@ -236,50 +173,13 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
     # "a" permet de cumuler les micro-batchs entre plusieurs runs Dagster
     write_mode = "a" if os.getenv("EXPORT_APPEND", "false").lower() == "true" else "w"
     # Sécurité : arrêt si le producteur est muet pendant > X fois le poll_timeout
-    # (évite de tourner indéfiniment si le flux s'arrête réellement).
     idle_timeout_s = int(os.getenv("KAFKA_IDLE_TIMEOUT_S", "120"))
 
->>>>>>> 6c556c4 (Initial commit)
     export_dir = os.path.join(get_project_root(), "data", "exports")
     os.makedirs(export_dir, exist_ok=True)
     export_path = os.path.join(export_dir, "cleaned_logs.jsonl")
 
     consumer, producer = get_kafka_clients(bootstrap_servers)
-<<<<<<< HEAD
-    
-    logging.info("Attente de messages bruts à nettoyer...")
-    
-    messages_processed = 0
-    # Consomme un lot (timeout de 2000ms si plus de messages)
-    raw_msgs = consumer.poll(timeout_ms=2000)
-
-    with open(export_path, "w", encoding="utf-8") as export_file:
-        for tp, messages in raw_msgs.items():
-            for msg in messages:
-                if messages_processed >= max_messages:
-                    break
-                    
-                raw_data = msg.value
-                cleaned_data = clean_record(raw_data)
-                
-                producer.send(cleaned_topic, value=cleaned_data)
-                export_file.write(json.dumps(cleaned_data, default=str) + "\n")
-                messages_processed += 1
-                
-    if messages_processed > 0:
-        producer.flush()
-        logging.info(f"Nettoyage terminé : {messages_processed} événements publiés sur {cleaned_topic}.")
-        logging.info(f"Fichier exporté : {export_path}")
-    else:
-        logging.info("Aucun message brut à traiter.")
-        logging.info(f"Fichier d'export créé (vide si aucun message) : {export_path}")
-        
-    consumer.close()
-    producer.close()
-    
-    return messages_processed
-
-=======
 
     target_str = "ILLIMITÉ" if max_messages is None else f"{max_messages}"
     logging.info(
@@ -304,7 +204,7 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
                     # on arrête (le flux temps réel est réellement terminé).
                     if idle_timeout_s > 0 and (time.time() - last_data_ts) > idle_timeout_s:
                         logging.info(
-                            f"Flux considered terminé : aucune donnée depuis {idle_timeout_s}s."
+                            f"Flux considéré terminé : aucune donnée depuis {idle_timeout_s}s."
                         )
                         break
                     logging.info(
@@ -338,7 +238,7 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
 
                 elapsed = max(time.time() - start, 1e-6)
                 logging.info(
-                    f"Progression nettoyage : {messages_processed}/{max_messages} "
+                    f"Progression nettoyage : {messages_processed}/{target_str} "
                     f"({messages_processed/elapsed:.0f} msg/s, {attacks_seen} attaques)"
                 )
 
@@ -362,6 +262,5 @@ def run_cleaner(max_messages: int | None = None, idle_polls_limit: int | None = 
     return messages_processed
 
 
->>>>>>> 6c556c4 (Initial commit)
 if __name__ == "__main__":
     run_cleaner()

@@ -2,37 +2,26 @@ import os
 import glob
 import json
 import logging
-<<<<<<< HEAD
-import pandas as pd
-import time
-=======
 import time
 
 import numpy as np
 import pandas as pd
->>>>>>> 6c556c4 (Initial commit)
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-<<<<<<< HEAD
-=======
 # Valeurs "sales" typiques du dataset CIC-IDS2017 (colonnes Flow Bytes/s, Flow Packets/s)
 NA_VALUES = ["", "Infinity", "-Infinity", "infinity", "inf", "-inf", "NaN", "nan", "NULL", "null"]
 
 
->>>>>>> 6c556c4 (Initial commit)
 def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
     """
     Create a KafkaProducer with retries and exponential backoff until `timeout_s` seconds.
     This helps when the broker container is still initializing at startup.
-<<<<<<< HEAD
-=======
 
     Le producteur est réglé pour le débit (batching + compression) afin de pouvoir
     pousser plusieurs centaines de milliers d'événements sans s'écrouler.
->>>>>>> 6c556c4 (Initial commit)
     """
     end_time = time.time() + timeout_s
     attempt = 0
@@ -42,9 +31,6 @@ def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
             logging.info(f"Creating KafkaProducer (attempt={attempt}) to {bootstrap_servers}")
             producer = KafkaProducer(
                 bootstrap_servers=[bootstrap_servers],
-<<<<<<< HEAD
-                value_serializer=lambda v: json.dumps(v, default=str).encode('utf-8')
-=======
                 value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
                 # --- Réglages de débit (throughput) ---
                 acks=1,
@@ -54,7 +40,6 @@ def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
                 buffer_memory=128 * 1024 * 1024,
                 max_in_flight_requests_per_connection=5,
                 retries=5,
->>>>>>> 6c556c4 (Initial commit)
             )
             # perform a quick metadata request to ensure bootstrap succeeded
             producer.bootstrap_connected()
@@ -69,20 +54,11 @@ def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
             sleep = min(5 * (2 ** (attempt - 1)), remaining, 10)
             time.sleep(sleep)
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 6c556c4 (Initial commit)
 def get_project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
 
-<<<<<<< HEAD
-def run_producer(batch_size=1000):
-    """
-    Lit les fichiers CSV dans data/raw/ et les publie dans le topic 'raw-logs'
-    simulant ainsi un flux d'ingestion en temps réel.
-=======
 def _sanitize_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """
     Rend le chunk sérialisable en JSON valide :
@@ -133,23 +109,16 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
     Args:
         batch_size: nombre de lignes lues par chunk pandas.
         max_records: nombre maximum d'événements à publier (None => illimité).
-                     Par défaut lu depuis STREAM_MAX_RECORDS.
+                      Par défaut lu depuis STREAM_MAX_RECORDS.
         chunk_stride: 1 = flux séquentiel réaliste (défaut).
                       N > 1 = on publie 1 chunk puis on saute N-1 chunks, ce qui
                       étale l'échantillon sur toute la journée de trafic et
                       ramène beaucoup plus d'attaques (utile pour entraîner un modèle).
                       Par défaut lu depuis PRODUCER_CHUNK_STRIDE.
->>>>>>> 6c556c4 (Initial commit)
     """
     bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "redpanda:9092")
     topic = os.getenv("KAFKA_RAW_TOPIC", "raw-logs")
     data_dir = os.path.join(get_project_root(), "data", "raw")
-<<<<<<< HEAD
-    
-    producer = get_kafka_producer(bootstrap_servers)
-    
-    csv_files = glob.glob(os.path.join(data_dir, "*.csv"))
-=======
 
     if max_records is None:
         max_records = int(os.getenv("STREAM_MAX_RECORDS", "0"))
@@ -159,41 +128,15 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
         chunk_stride = max(1, int(os.getenv("PRODUCER_CHUNK_STRIDE", "1")))
 
     csv_files = sorted(glob.glob(os.path.join(data_dir, "*.csv")))
->>>>>>> 6c556c4 (Initial commit)
     if not csv_files:
         logging.warning("Aucun fichier CSV trouvé pour l'ingestion.")
         return 0
 
-<<<<<<< HEAD
-    total_published = 0
-    
-    for filepath in csv_files:
-        logging.info(f"Lecture du fichier: {filepath}")
-        
-        # Lecture par chunks pour ne pas saturer la mémoire et simuler un flux
-        for chunk in pd.read_csv(filepath, chunksize=batch_size, keep_default_na=False):
-            # Remplacement des éventuelles valeurs infinies générées par pandas
-            chunk = chunk.replace([float('inf'), float('-inf')], None)
-            records = chunk.to_dict(orient="records")
-            
-            for record in records:
-                producer.send(topic, value=record)
-                total_published += 1
-                
-            producer.flush()
-            logging.info(f"Publié {len(records)} événements sur {topic}.")
-            break # Dans le cadre du micro-batching, on traite un chunk à la fois pour la démo
-            
-    producer.close()
-    return total_published
-
-=======
     target_str = "ILLIMITÉ (tout le dataset)" if max_records is None else f"{max_records}"
     logging.info(
         f"{len(csv_files)} fichier(s) CSV détecté(s). Objectif de publication : {target_str} événements "
         f"(batch_size={batch_size}, chunk_stride={chunk_stride})."
     )
-
 
     producer = get_kafka_producer(bootstrap_servers)
 
@@ -268,6 +211,5 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
     return total_published
 
 
->>>>>>> 6c556c4 (Initial commit)
 if __name__ == "__main__":
     run_producer()
