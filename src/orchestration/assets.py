@@ -2,7 +2,7 @@ import os
 
 from dagster import asset, AssetExecutionContext, MetadataValue
 
-from src.streaming.producer import run_producer, get_project_root
+from src.streaming.producer import run_producer, get_project_root, _sanitize_chunk
 from src.streaming.cleaner import run_cleaner
 from src.streaming.inference import run_inference
 from src.quality.data_quality import (
@@ -46,6 +46,9 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
     for filepath in csv_files:
         context.log.info(f"Quality check on: {os.path.basename(filepath)}")
         df = pd.read_csv(filepath, keep_default_na=False, nrows=10000)
+        # Nettoyage identique à celui du producteur (inf/NaN -> null) AVANT la
+        # validation : on vérifie ainsi les données qui seront réellement ingérées.
+        df = _sanitize_chunk(df)
         try:
             report = validate_raw_csv(df)
             context.log.info(
