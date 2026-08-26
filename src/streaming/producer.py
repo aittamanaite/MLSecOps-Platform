@@ -33,12 +33,11 @@ def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
                 bootstrap_servers=[bootstrap_servers],
                 value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
                 # --- Réglages de débit (throughput) ---
+                # (paramètres valides sur toutes les versions de kafka-python)
                 acks=1,
                 linger_ms=50,             # laisse le temps de constituer des lots
                 batch_size=256 * 1024,    # 256 KB par lot
                 compression_type="gzip",  # réduit fortement le volume réseau
-                buffer_memory=128 * 1024 * 1024,
-                max_in_flight_requests_per_connection=5,
                 retries=5,
             )
             # perform a quick metadata request to ensure bootstrap succeeded

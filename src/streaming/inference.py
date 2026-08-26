@@ -41,7 +41,6 @@ def get_kafka_clients(bootstrap_servers, timeout_s: int = 60):
                 linger_ms=50,
                 batch_size=256 * 1024,
                 compression_type="gzip",
-                buffer_memory=128 * 1024 * 1024,
                 retries=5,
             )
             producer.bootstrap_connected()
