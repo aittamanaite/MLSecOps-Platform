@@ -96,11 +96,13 @@ services:
     volumes:
       - redpanda_data:/var/lib/redpanda/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9644/v1/health || exit 1"]
+      # rpk est fourni par l'image redpanda (curl n'y est pas présent).
+      # On teste le port Kafka directement pour ne pas dépendre de l'admin API.
+      test: ["CMD-SHELL", "rpk cluster health -X brokers=127.0.0.1:9092 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 5s
+      start_period: 15s
 
 volumes:
   redpanda_data:
