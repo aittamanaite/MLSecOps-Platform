@@ -61,11 +61,15 @@ def get_project_root() -> str:
 
 def _sanitize_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     """
-    Rend le chunk sérialisable en JSON valide :
+    Rend le chunk sérialisable en JSON valide et cohérent avec le dataset CIC-IDS2017 :
     - remplace +inf/-inf par NaN
+    - remplace les valeurs négatives (ex: Flow Duration < 0) par 0, car les
+      colonnes de flux sont par nature >= 0 ; un '-' isolé est une artefacts du CSV
     - convertit tous les NaN/NaT en None (=> `null` en JSON, et non `NaN` invalide)
     """
     chunk = chunk.replace([np.inf, -np.inf], np.nan)
+    num_cols = chunk.select_dtypes(include=[np.number]).columns
+    chunk[num_cols] = chunk[num_cols].clip(lower=0)
     # astype(object) est nécessaire pour pouvoir stocker None dans des colonnes numériques
     return chunk.astype(object).where(pd.notna(chunk), None)
 

@@ -118,8 +118,11 @@ ANOMALY_THRESHOLD = 0.80
 # Maximum allowed null-rate for critical columns (5%)
 MAX_NULL_RATE = 0.05
 
-# Maximum allowed duplicate-row ratio (1%)
-MAX_DUPLICATE_RATE = 0.01
+# Maximum allowed duplicate-row ratio. Network flow datasets (CIC-IDS2017)
+# legitimately contain repeated flows, so a small duplicate ratio is expected.
+# We cap it at 5% to still catch pathological corruption without blocking
+# normal data.
+MAX_DUPLICATE_RATE = 0.05
 
 
 # ---------------------------------------------------------------------------
