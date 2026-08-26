@@ -15,16 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir \
-        dagster dagster-webserver \
-        dlt duckdb \
-        dbt-core dbt-duckdb \
-        kafka-python
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN useradd -m appuser && chown -R appuser:appuser /app
-USER appuser
+RUN mkdir -p /app/dagster_home /app/mlruns /app/src/ml/artifacts
 
 CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000"]
