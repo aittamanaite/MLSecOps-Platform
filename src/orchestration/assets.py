@@ -16,9 +16,13 @@ import glob
 import pandas as pd
 
 
-def _target_records() -> int:
-    """Objectif de volume par micro-batch (surchargeable via STREAM_MAX_RECORDS)."""
-    return int(os.getenv("STREAM_MAX_RECORDS", "120000"))
+def _target_records() -> int | None:
+    """
+    Objectif de volume par micro-batch (surchargeable via STREAM_MAX_RECORDS).
+    0 (ou vide) => None => illimité : on exporte tout le dataset brut.
+    """
+    val = int(os.getenv("STREAM_MAX_RECORDS", "0"))
+    return None if val <= 0 else val
 
 
 def _read_batch_size() -> int:
