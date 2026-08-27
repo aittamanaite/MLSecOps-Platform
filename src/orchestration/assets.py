@@ -37,10 +37,10 @@ def _chunk_stride() -> int:
 @asset(
     group_name="streaming_pipeline",
     compute_kind="python",
-    description="Simule le flux réseau en temps réel en envoyant les CSV locaux vers Redpanda (raw-logs)."
+    description="Lit les CSV de data/raw et les publie en temps réel vers Redpanda (raw-logs)."
 )
 def streaming_ingestion_asset(context: AssetExecutionContext):
-    context.log.info("Lancement de l'ingestion temps réel vers Kafka/Redpanda...")
+    context.log.info("Lancement de l'ingestion temps réel vers Redpanda...")
 
     # ── DATA QUALITY GATE: Validate raw CSV files before ingestion ──
     project_root = get_project_root()
@@ -67,7 +67,7 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
             raise
 
     target = _target_records()
-    context.log.info(f"Lancement de l'ingestion temps réel vers Kafka/Redpanda (objectif {target} événements)...")
+    context.log.info(f"Lancement de l'ingestion temps réel vers Redpanda (objectif {target} événements)...")
     events_published = run_producer(
         batch_size=_read_batch_size(),
         max_records=target,
@@ -77,7 +77,7 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
     context.add_output_metadata(
         {
             "events_published": MetadataValue.int(events_published),
-            "target_records": MetadataValue.int(target),
+            "target_records": MetadataValue.int(target if target else 0),
         }
     )
     return events_published
@@ -87,7 +87,7 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
     deps=[streaming_ingestion_asset],
     group_name="streaming_pipeline",
     compute_kind="python",
-    description="Consomme le flux brut, le nettoie et le publie sur cleaned-logs."
+    description="Consomme le flux brut de Redpanda, le nettoie et le publie sur cleaned-logs."
 )
 def streaming_cleaning_asset(context: AssetExecutionContext):
     context.log.info("Lancement du processeur de nettoyage de flux...")
@@ -153,7 +153,7 @@ def model_inference_asset(context: AssetExecutionContext):
                 if line:
                     records.append(json.loads(line))
         try:
-            report = validate_inference_output(records, total_processed=target)
+            report = validate_inference_output(records, total_processed=target if target else len(records))
             context.log.info(
                 f"✅ Inference output quality PASSED "
                 f"({report.passed_rules}/{report.total_rules} rules passed)"
