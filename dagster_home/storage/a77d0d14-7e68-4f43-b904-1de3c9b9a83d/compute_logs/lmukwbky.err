@@ -1,0 +1,370 @@
+2026-08-27 11:12:46 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - LOGS_CAPTURED - Capturing logs for process (pid: 11298).
+2026-08-27 11:12:46 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - streaming_ingestion_asset - STEP_START - Started execution of step "streaming_ingestion_asset".
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Lancement de l'ingestion temps réel vers Redpanda...
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+/app/src/orchestration/assets.py:52: DtypeWarning: Columns (14) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(filepath, keep_default_na=False, nrows=10000)
+2026-08-27 11:12:46,597 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:46.505326+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0061 (61 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Friday-WorkingHours-Morning.pcap_ISCX.csv
+2026-08-27 11:12:46,901 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:46.786400+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0147 (147 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Friday-WorkingHours-Morning.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:46 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
+2026-08-27 11:12:47,237 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:47.099690+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0137 (137 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Monday-WorkingHours.pcap_ISCX.csv
+/app/src/orchestration/assets.py:52: DtypeWarning: Columns (14) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(filepath, keep_default_na=False, nrows=10000)
+2026-08-27 11:12:47,580 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:47.475886+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0120 (120 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Monday-WorkingHours.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Wednesday-workingHours.pcap_ISCX.csv
+2026-08-27 11:12:47,882 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:47.772964+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0071 (71 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Wednesday-workingHours.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:47 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv
+2026-08-27 11:12:48,271 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:48.147340+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0134 (134 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Tuesday-WorkingHours.pcap_ISCX.csv
+/app/src/orchestration/assets.py:52: DtypeWarning: Columns (14) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(filepath, keep_default_na=False, nrows=10000)
+2026-08-27 11:12:48,608 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:48.496704+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0128 (128 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Tuesday-WorkingHours.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Quality check on: Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv
+2026-08-27 11:12:48,875 - INFO - === Data Quality Report: raw_csv_validation ===
+Status: PASSED
+Timestamp: 2026-08-27T11:12:48.782004+00:00
+Rules: 12/12 passed
+
+  ✅ [COMPLETENESS] row_count_minimum: Dataset contains 10000 rows
+  ✅ [COMPLETENESS] column_count_match: Column count is 79 (expected 79)
+  ✅ [COMPLETENESS] critical_columns_present: All critical columns present
+  ✅ [COMPLETENESS] label_null_rate: Label null rate: 0.0000 (max 0.05)
+  ✅ [COMPLETENESS] no_fully_empty_rows: No fully empty rows
+  ✅ [COMPLETENESS] destination_port_null_rate: Destination Port null rate: 0.0000 (max 0.05)
+  ✅ [VALIDITY] port_range_valid: All ports in valid range [0, 65535]
+  ✅ [VALIDITY] label_values_valid: All labels are valid CICIDS2017 categories
+  ✅ [VALIDITY] no_infinite_values: No infinite values in numeric columns
+  ✅ [VALIDITY] non_negative_numerics: All required columns have non-negative values
+  ✅ [INTEGRITY] duplicate_row_rate: Duplicate rate: 0.0101 (101 rows) — max 0.05
+  ✅ [INTEGRITY] schema_column_match: Column names match expected CICIDS2017 schema
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - ✅ Raw data quality PASSED for Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv (12/12 rules passed)
+2026-08-27 11:12:48 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Lancement de l'ingestion temps réel vers Redpanda (objectif None événements)...
+2026-08-27 11:12:48,922 - INFO - 8 fichier(s) CSV détecté(s). Objectif de publication : ILLIMITÉ (tout le dataset) événements (batch_size=5000, chunk_stride=1).
+2026-08-27 11:12:48,922 - INFO - Creating KafkaProducer (attempt=1) to redpanda:9092
+2026-08-27 11:12:48,923 - INFO - Attempting bootstrap to bootstrap-0 at redpanda:9092 (rack None)
+2026-08-27 11:12:48,923 - INFO - Initializing connection for node_id bootstrap-0 at redpanda:9092 (rack=None)
+2026-08-27 11:12:48,939 - INFO - <KafkaTCPTransport [172.18.0.2:9092<-50030]>: connected to <socket.socket fd=19, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('172.18.0.5', 50030), raddr=('172.18.0.2', 9092)>
+2026-08-27 11:12:48,943 - INFO - <KafkaConnection node_id=bootstrap-0 host=[172.18.0.2:9092<-50030] broker_version=unknown (initializing)>: Broker version identified as 3.1
+2026-08-27 11:12:48,944 - INFO - <KafkaConnection node_id=bootstrap-0 host=[172.18.0.2:9092<-50030] broker_version=(3, 1) (connected)>: Connected
+2026-08-27 11:12:48,950 - INFO - Updated metadata: ClusterMetadata(brokers: 1, topics: 0, coordinators: 0)
+2026-08-27 11:12:48,950 - INFO - Bootstrap complete: ClusterMetadata(brokers: 1, topics: 0, coordinators: 0)
+2026-08-27 11:12:48,950 - INFO - Closing bootstrap connection bootstrap-0
+2026-08-27 11:12:48,950 - INFO - <KafkaTCPTransport [172.18.0.2:9092<-50030]>: Closing transport
+2026-08-27 11:12:48,951 - INFO - <KafkaConnection node_id=bootstrap-0 broker_version=(3, 1) (disconnected)>: Connection closed
+2026-08-27 11:12:48,951 - INFO - Starting metadata refresh loop
+2026-08-27 11:12:48,951 - WARNING - <KafkaProducer client_id=kafka-python-producer-1 transactional_id=None>: Idempotence will be disabled because user-provided config conflicts with idempotent defaults: acks=1
+2026-08-27 11:12:48,952 - INFO - KafkaProducer bootstrap succeeded
+2026-08-27 11:12:49,204 - INFO - Initializing connection for node_id 0 at redpanda:9092 (rack=None)
+2026-08-27 11:12:49,206 - INFO - <KafkaTCPTransport [172.18.0.2:9092<-50032]>: connected to <socket.socket fd=27, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('172.18.0.5', 50032), raddr=('172.18.0.2', 9092)>
+2026-08-27 11:12:49,208 - INFO - <KafkaConnection node_id=0 host=[172.18.0.2:9092<-50032] broker_version=(3, 1) (connected)>: Connected
+2026-08-27 11:12:49,210 - INFO - Updated metadata: ClusterMetadata(brokers: 1, topics: 1, coordinators: 0)
+2026-08-27 11:12:50,533 - WARNING - Task <kafka.net.selector.Task object at 0x75a59a7feef0> ran for 0.107s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:12:58,587 - INFO - Progression : 20000/ILLIMITÉ événements publiés (2081 msg/s)
+2026-08-27 11:13:05,941 - INFO - Progression : 40000/ILLIMITÉ événements publiés (2358 msg/s)
+2026-08-27 11:13:13,336 - INFO - Progression : 60000/ILLIMITÉ événements publiés (2463 msg/s)
+2026-08-27 11:13:20,090 - INFO - Progression : 80000/ILLIMITÉ événements publiés (2571 msg/s)
+2026-08-27 11:13:27,180 - INFO - Progression : 100000/ILLIMITÉ événements publiés (2617 msg/s)
+2026-08-27 11:13:33,920 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.112s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:13:37,296 - INFO - Progression : 120000/ILLIMITÉ événements publiés (2483 msg/s)
+2026-08-27 11:13:44,514 - INFO - Progression : 140000/ILLIMITÉ événements publiés (2521 msg/s)
+2026-08-27 11:13:52,216 - INFO - Progression : 160000/ILLIMITÉ événements publiés (2530 msg/s)
+2026-08-27 11:13:58,644 - INFO - Progression : 180000/ILLIMITÉ événements publiés (2584 msg/s)
+2026-08-27 11:14:06,963 - INFO - Progression : 200000/ILLIMITÉ événements publiés (2565 msg/s)
+2026-08-27 11:14:14,194 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.120s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:14:14,247 - INFO - Progression : 220000/ILLIMITÉ événements publiés (2580 msg/s)
+2026-08-27 11:14:21,331 - INFO - Progression : 240000/ILLIMITÉ événements publiés (2599 msg/s)
+2026-08-27 11:14:28,519 - INFO - Progression : 260000/ILLIMITÉ événements publiés (2612 msg/s)
+2026-08-27 11:14:35,980 - INFO - Progression : 280000/ILLIMITÉ événements publiés (2617 msg/s)
+2026-08-27 11:14:38,707 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ac7cc40> ran for 0.135s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:14:43,382 - INFO - Progression : 300000/ILLIMITÉ événements publiés (2622 msg/s)
+2026-08-27 11:14:50,687 - INFO - Progression : 320000/ILLIMITÉ événements publiés (2629 msg/s)
+2026-08-27 11:14:57,055 - INFO - Progression : 340000/ILLIMITÉ événements publiés (2655 msg/s)
+2026-08-27 11:15:04,610 - INFO - Progression : 360000/ILLIMITÉ événements publiés (2654 msg/s)
+2026-08-27 11:15:11,102 - INFO - Progression : 380000/ILLIMITÉ événements publiés (2674 msg/s)
+2026-08-27 11:15:17,952 - INFO - Progression : 400000/ILLIMITÉ événements publiés (2685 msg/s)
+2026-08-27 11:15:24,969 - INFO - Progression : 420000/ILLIMITÉ événements publiés (2692 msg/s)
+2026-08-27 11:15:31,453 - INFO - Progression : 440000/ILLIMITÉ événements publiés (2708 msg/s)
+2026-08-27 11:15:38,840 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.113s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:15:41,043 - INFO - Progression : 460000/ILLIMITÉ événements publiés (2673 msg/s)
+2026-08-27 11:15:48,042 - INFO - Progression : 480000/ILLIMITÉ événements publiés (2681 msg/s)
+2026-08-27 11:15:55,219 - INFO - Progression : 500000/ILLIMITÉ événements publiés (2685 msg/s)
+2026-08-27 11:16:01,837 - INFO - Progression : 520000/ILLIMITÉ événements publiés (2696 msg/s)
+2026-08-27 11:16:09,331 - INFO - Progression : 540000/ILLIMITÉ événements publiés (2695 msg/s)
+2026-08-27 11:16:16,651 - INFO - Progression : 560000/ILLIMITÉ événements publiés (2697 msg/s)
+2026-08-27 11:16:23,995 - INFO - Progression : 580000/ILLIMITÉ événements publiés (2697 msg/s)
+2026-08-27 11:16:25,304 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.102s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:16:30,729 - INFO - Progression : 600000/ILLIMITÉ événements publiés (2706 msg/s)
+2026-08-27 11:16:37,697 - INFO - Progression : 620000/ILLIMITÉ événements publiés (2711 msg/s)
+2026-08-27 11:16:44,643 - INFO - Progression : 640000/ILLIMITÉ événements publiés (2716 msg/s)
+2026-08-27 11:16:49,284 - WARNING - Task <kafka.net.selector.Task object at 0x75a59a7fc730> ran for 0.100s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:16:51,617 - INFO - Progression : 660000/ILLIMITÉ événements publiés (2720 msg/s)
+2026-08-27 11:16:58,349 - INFO - Progression : 680000/ILLIMITÉ événements publiés (2727 msg/s)
+2026-08-27 11:17:04,456 - INFO - Progression : 700000/ILLIMITÉ événements publiés (2740 msg/s)
+2026-08-27 11:17:11,500 - INFO - Progression : 720000/ILLIMITÉ événements publiés (2743 msg/s)
+2026-08-27 11:17:13,432 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.100s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:17:17,369 - INFO - Progression : 740000/ILLIMITÉ événements publiés (2757 msg/s)
+2026-08-27 11:17:23,809 - INFO - Progression : 760000/ILLIMITÉ événements publiés (2765 msg/s)
+2026-08-27 11:17:29,599 - INFO - Progression : 780000/ILLIMITÉ événements publiés (2780 msg/s)
+2026-08-27 11:17:36,269 - INFO - Progression : 800000/ILLIMITÉ événements publiés (2785 msg/s)
+2026-08-27 11:17:44,998 - INFO - Progression : 820000/ILLIMITÉ événements publiés (2770 msg/s)
+2026-08-27 11:17:51,960 - INFO - Progression : 840000/ILLIMITÉ événements publiés (2772 msg/s)
+2026-08-27 11:17:57,563 - INFO - Progression : 860000/ILLIMITÉ événements publiés (2787 msg/s)
+2026-08-27 11:18:03,974 - INFO - Progression : 880000/ILLIMITÉ événements publiés (2794 msg/s)
+2026-08-27 11:18:04,611 - INFO - Updated metadata: ClusterMetadata(brokers: 1, topics: 1, coordinators: 0)
+2026-08-27 11:18:09,898 - INFO - Progression : 900000/ILLIMITÉ événements publiés (2804 msg/s)
+2026-08-27 11:18:18,814 - INFO - Progression : 920000/ILLIMITÉ événements publiés (2789 msg/s)
+2026-08-27 11:18:24,517 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ac7faf0> ran for 0.122s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:18:24,760 - INFO - Progression : 940000/ILLIMITÉ événements publiés (2799 msg/s)
+2026-08-27 11:18:30,877 - INFO - Progression : 960000/ILLIMITÉ événements publiés (2808 msg/s)
+2026-08-27 11:18:36,960 - INFO - Progression : 980000/ILLIMITÉ événements publiés (2816 msg/s)
+2026-08-27 11:18:42,951 - INFO - Progression : 1000000/ILLIMITÉ événements publiés (2825 msg/s)
+2026-08-27 11:18:51,793 - INFO - Progression : 1020000/ILLIMITÉ événements publiés (2811 msg/s)
+2026-08-27 11:18:57,574 - INFO - Progression : 1040000/ILLIMITÉ événements publiés (2821 msg/s)
+2026-08-27 11:19:03,084 - INFO - Progression : 1060000/ILLIMITÉ événements publiés (2833 msg/s)
+2026-08-27 11:19:09,268 - INFO - Progression : 1080000/ILLIMITÉ événements publiés (2840 msg/s)
+2026-08-27 11:19:14,878 - INFO - Progression : 1100000/ILLIMITÉ événements publiés (2850 msg/s)
+2026-08-27 11:19:23,667 - INFO - Progression : 1120000/ILLIMITÉ événements publiés (2838 msg/s)
+2026-08-27 11:19:29,355 - INFO - Progression : 1140000/ILLIMITÉ événements publiés (2847 msg/s)
+2026-08-27 11:19:30,000 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab87280> ran for 0.101s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:19:35,414 - INFO - Progression : 1160000/ILLIMITÉ événements publiés (2854 msg/s)
+2026-08-27 11:19:41,384 - INFO - Progression : 1180000/ILLIMITÉ événements publiés (2861 msg/s)
+2026-08-27 11:19:47,659 - INFO - Progression : 1200000/ILLIMITÉ événements publiés (2866 msg/s)
+2026-08-27 11:19:54,207 - WARNING - Task <kafka.net.selector.Task object at 0x75a59a7b39a0> ran for 0.113s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:19:56,798 - INFO - Progression : 1220000/ILLIMITÉ événements publiés (2852 msg/s)
+2026-08-27 11:20:03,409 - INFO - Progression : 1240000/ILLIMITÉ événements publiés (2854 msg/s)
+2026-08-27 11:20:09,656 - INFO - Progression : 1260000/ILLIMITÉ événements publiés (2859 msg/s)
+2026-08-27 11:20:16,135 - INFO - Progression : 1280000/ILLIMITÉ événements publiés (2863 msg/s)
+2026-08-27 11:20:22,619 - INFO - Progression : 1300000/ILLIMITÉ événements publiés (2866 msg/s)
+2026-08-27 11:20:27,909 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aab90c0> ran for 0.109s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:20:29,229 - INFO - Progression : 1320000/ILLIMITÉ événements publiés (2868 msg/s)
+2026-08-27 11:20:35,279 - INFO - Progression : 1340000/ILLIMITÉ événements publiés (2874 msg/s)
+2026-08-27 11:20:37,931 - WARNING - Task <kafka.net.selector.Task object at 0x75a59a7fe410> ran for 0.136s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:20:41,920 - INFO - Progression : 1360000/ILLIMITÉ événements publiés (2876 msg/s)
+2026-08-27 11:20:48,250 - INFO - Progression : 1380000/ILLIMITÉ événements publiés (2879 msg/s)
+2026-08-27 11:20:55,128 - INFO - Progression : 1400366/ILLIMITÉ événements publiés (2881 msg/s)
+2026-08-27 11:21:00,510 - INFO - Progression : 1420366/ILLIMITÉ événements publiés (2890 msg/s)
+2026-08-27 11:21:00,512 - INFO - Fichier terminé : Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv
+2026-08-27 11:21:06,013 - INFO - Progression : 1440366/ILLIMITÉ événements publiés (2898 msg/s)
+2026-08-27 11:21:12,330 - INFO - Progression : 1460366/ILLIMITÉ événements publiés (2901 msg/s)
+2026-08-27 11:21:17,825 - INFO - Progression : 1480366/ILLIMITÉ événements publiés (2909 msg/s)
+2026-08-27 11:21:26,833 - INFO - Progression : 1500366/ILLIMITÉ événements publiés (2897 msg/s)
+2026-08-27 11:21:32,726 - INFO - Progression : 1521399/ILLIMITÉ événements publiés (2905 msg/s)
+2026-08-27 11:21:38,569 - INFO - Progression : 1541399/ILLIMITÉ événements publiés (2911 msg/s)
+2026-08-27 11:21:38,569 - INFO - Fichier terminé : Friday-WorkingHours-Morning.pcap_ISCX.csv
+2026-08-27 11:21:41,631 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab87b80> ran for 0.104s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:21:45,019 - INFO - Progression : 1561399/ILLIMITÉ événements publiés (2913 msg/s)
+2026-08-27 11:21:50,591 - INFO - Progression : 1581399/ILLIMITÉ événements publiés (2920 msg/s)
+2026-08-27 11:21:59,239 - INFO - Progression : 1601399/ILLIMITÉ événements publiés (2910 msg/s)
+2026-08-27 11:22:03,447 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab84b20> ran for 0.100s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:22:05,579 - INFO - Progression : 1621399/ILLIMITÉ événements publiés (2913 msg/s)
+2026-08-27 11:22:10,933 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab86860> ran for 0.100s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:22:11,199 - INFO - Progression : 1641399/ILLIMITÉ événements publiés (2919 msg/s)
+2026-08-27 11:22:17,084 - INFO - Progression : 1661399/ILLIMITÉ événements publiés (2924 msg/s)
+2026-08-27 11:22:23,285 - INFO - Progression : 1681399/ILLIMITÉ événements publiés (2928 msg/s)
+2026-08-27 11:22:31,918 - INFO - Progression : 1701399/ILLIMITÉ événements publiés (2919 msg/s)
+2026-08-27 11:22:38,441 - INFO - Progression : 1722144/ILLIMITÉ événements publiés (2922 msg/s)
+2026-08-27 11:22:42,615 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aabbf10> ran for 0.102s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:22:42,927 - INFO - Fichier terminé : Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-08-27 11:22:44,305 - INFO - Progression : 1742144/ILLIMITÉ événements publiés (2926 msg/s)
+2026-08-27 11:22:51,020 - INFO - Progression : 1762144/ILLIMITÉ événements publiés (2927 msg/s)
+2026-08-27 11:22:58,133 - INFO - Progression : 1782144/ILLIMITÉ événements publiés (2926 msg/s)
+2026-08-27 11:23:06,894 - INFO - Progression : 1802144/ILLIMITÉ événements publiés (2916 msg/s)
+2026-08-27 11:23:13,101 - INFO - Progression : 1822144/ILLIMITÉ événements publiés (2920 msg/s)
+2026-08-27 11:23:17,634 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60df0> ran for 0.104s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:23:18,997 - INFO - Progression : 1842144/ILLIMITÉ événements publiés (2924 msg/s)
+2026-08-27 11:23:25,765 - INFO - Progression : 1862144/ILLIMITÉ événements publiés (2924 msg/s)
+2026-08-27 11:23:27,590 - INFO - Updated metadata: ClusterMetadata(brokers: 1, topics: 1, coordinators: 0)
+2026-08-27 11:23:32,779 - INFO - Progression : 1882144/ILLIMITÉ événements publiés (2923 msg/s)
+2026-08-27 11:23:42,311 - INFO - Progression : 1902144/ILLIMITÉ événements publiés (2911 msg/s)
+2026-08-27 11:23:49,210 - INFO - Progression : 1922144/ILLIMITÉ événements publiés (2911 msg/s)
+2026-08-27 11:23:56,036 - INFO - Progression : 1942144/ILLIMITÉ événements publiés (2911 msg/s)
+2026-08-27 11:24:02,960 - INFO - Progression : 1962144/ILLIMITÉ événements publiés (2911 msg/s)
+2026-08-27 11:24:05,207 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ac7f7c0> ran for 0.123s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:24:10,461 - INFO - Progression : 1982144/ILLIMITÉ événements publiés (2909 msg/s)
+2026-08-27 11:24:17,586 - INFO - Progression : 2002144/ILLIMITÉ événements publiés (2908 msg/s)
+2026-08-27 11:24:18,079 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab84b20> ran for 0.108s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:24:24,839 - INFO - Progression : 2022213/ILLIMITÉ événements publiés (2906 msg/s)
+2026-08-27 11:24:28,127 - INFO - Fichier terminé : Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
+2026-08-27 11:24:30,097 - INFO - Fichier terminé : Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv
+2026-08-27 11:24:31,602 - INFO - Progression : 2042213/ILLIMITÉ événements publiés (2907 msg/s)
+2026-08-27 11:24:38,782 - INFO - Progression : 2062213/ILLIMITÉ événements publiés (2905 msg/s)
+2026-08-27 11:24:45,674 - INFO - Progression : 2082213/ILLIMITÉ événements publiés (2905 msg/s)
+2026-08-27 11:24:52,149 - INFO - Progression : 2102213/ILLIMITÉ événements publiés (2907 msg/s)
+2026-08-27 11:24:58,708 - INFO - Progression : 2122213/ILLIMITÉ événements publiés (2908 msg/s)
+2026-08-27 11:25:05,304 - INFO - Progression : 2142213/ILLIMITÉ événements publiés (2909 msg/s)
+2026-08-27 11:25:12,703 - INFO - Progression : 2162213/ILLIMITÉ événements publiés (2907 msg/s)
+2026-08-27 11:25:19,480 - INFO - Progression : 2182213/ILLIMITÉ événements publiés (2908 msg/s)
+2026-08-27 11:25:25,849 - INFO - Progression : 2202213/ILLIMITÉ événements publiés (2910 msg/s)
+2026-08-27 11:25:32,138 - INFO - Progression : 2222213/ILLIMITÉ événements publiés (2912 msg/s)
+2026-08-27 11:25:38,587 - INFO - Progression : 2242213/ILLIMITÉ événements publiés (2913 msg/s)
+2026-08-27 11:25:47,309 - INFO - Progression : 2262213/ILLIMITÉ événements publiés (2906 msg/s)
+2026-08-27 11:25:53,113 - INFO - Progression : 2282213/ILLIMITÉ événements publiés (2910 msg/s)
+2026-08-27 11:25:59,329 - INFO - Progression : 2302213/ILLIMITÉ événements publiés (2913 msg/s)
+2026-08-27 11:26:05,662 - INFO - Progression : 2322213/ILLIMITÉ événements publiés (2915 msg/s)
+2026-08-27 11:26:11,296 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.427s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:26:19,039 - INFO - Progression : 2342213/ILLIMITÉ événements publiés (2891 msg/s)
+2026-08-27 11:26:31,480 - INFO - Progression : 2362213/ILLIMITÉ événements publiés (2872 msg/s)
+2026-08-27 11:26:48,649 - INFO - Progression : 2382213/ILLIMITÉ événements publiés (2837 msg/s)
+2026-08-27 11:26:56,326 - INFO - Progression : 2402213/ILLIMITÉ événements publiés (2835 msg/s)
+2026-08-27 11:27:03,926 - INFO - Progression : 2422213/ILLIMITÉ événements publiés (2833 msg/s)
+2026-08-27 11:27:10,001 - INFO - Progression : 2442213/ILLIMITÉ événements publiés (2836 msg/s)
+2026-08-27 11:27:16,461 - INFO - Progression : 2462213/ILLIMITÉ événements publiés (2838 msg/s)
+2026-08-27 11:27:26,259 - INFO - Progression : 2482213/ILLIMITÉ événements publiés (2829 msg/s)
+2026-08-27 11:27:33,383 - INFO - Progression : 2502213/ILLIMITÉ événements publiés (2829 msg/s)
+2026-08-27 11:27:37,182 - INFO - Fichier terminé : Tuesday-WorkingHours.pcap_ISCX.csv
+2026-08-27 11:27:38,765 - WARNING - Task <kafka.net.selector.Task object at 0x75a59ab873d0> ran for 0.123s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:27:40,688 - INFO - Progression : 2523122/ILLIMITÉ événements publiés (2830 msg/s)
+2026-08-27 11:27:46,957 - INFO - Progression : 2543122/ILLIMITÉ événements publiés (2832 msg/s)
+2026-08-27 11:27:49,752 - WARNING - Task <kafka.net.selector.Task object at 0x75a59aa60cd0> ran for 0.107s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:27:54,666 - INFO - Progression : 2563122/ILLIMITÉ événements publiés (2830 msg/s)
+2026-08-27 11:28:01,825 - INFO - Progression : 2583122/ILLIMITÉ événements publiés (2830 msg/s)
+2026-08-27 11:28:08,860 - INFO - Progression : 2603122/ILLIMITÉ événements publiés (2830 msg/s)
+2026-08-27 11:28:16,107 - INFO - Progression : 2623122/ILLIMITÉ événements publiés (2829 msg/s)
+2026-08-27 11:28:23,813 - INFO - Progression : 2643122/ILLIMITÉ événements publiés (2827 msg/s)
+2026-08-27 11:28:30,940 - INFO - Progression : 2663040/ILLIMITÉ événements publiés (2827 msg/s)
+2026-08-27 11:28:32,587 - INFO - Fichier terminé : Monday-WorkingHours.pcap_ISCX.csv
+2026-08-27 11:28:37,694 - INFO - Progression : 2683040/ILLIMITÉ événements publiés (2828 msg/s)
+2026-08-27 11:28:44,722 - INFO - Progression : 2703040/ILLIMITÉ événements publiés (2828 msg/s)
+2026-08-27 11:28:45,710 - INFO - Updated metadata: ClusterMetadata(brokers: 1, topics: 1, coordinators: 0)
+2026-08-27 11:28:50,864 - INFO - Progression : 2723040/ILLIMITÉ événements publiés (2831 msg/s)
+2026-08-27 11:28:57,766 - INFO - Progression : 2743040/ILLIMITÉ événements publiés (2831 msg/s)
+2026-08-27 11:29:03,894 - INFO - Progression : 2763040/ILLIMITÉ événements publiés (2834 msg/s)
+2026-08-27 11:29:09,733 - INFO - Progression : 2783040/ILLIMITÉ événements publiés (2838 msg/s)
+2026-08-27 11:29:16,009 - INFO - Progression : 2803040/ILLIMITÉ événements publiés (2840 msg/s)
+2026-08-27 11:29:22,173 - INFO - Progression : 2823040/ILLIMITÉ événements publiés (2842 msg/s)
+2026-08-27 11:29:25,966 - WARNING - Task <kafka.net.selector.Task object at 0x75a59a7b38b0> ran for 0.107s (>0.100s threshold). It is blocking the event loop -- likely a tight sync loop inside a coroutine. Other pollers will time out.
+2026-08-27 11:29:27,467 - INFO - Fichier terminé : Wednesday-workingHours.pcap_ISCX.csv
+2026-08-27 11:29:27,468 - INFO - <KafkaProducer client_id=kafka-python-producer-1 transactional_id=None>: Closing the Kafka producer with 9223372036.0 secs timeout.
+2026-08-27 11:29:27,468 - INFO - <KafkaTCPTransport [172.18.0.2:9092<-50032]>: Closing transport
+2026-08-27 11:29:27,469 - INFO - <KafkaConnection node_id=0 broker_version=(3, 1) (disconnected)>: Connection closed
+2026-08-27 11:29:27,469 - INFO - Stopping metadata refresh loop
+2026-08-27 11:29:27,470 - INFO - Ingestion terminée : 2830743 événements publiés sur 'raw-logs' en 998.5s (2835 msg/s).
+2026-08-27 11:29:27 +0000 - dagster - INFO - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - 2830743 événements poussés dans le flux brut.
+2026-08-27 11:29:27 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - streaming_ingestion_asset - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-08-27 11:29:27 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - streaming_ingestion_asset - Writing file at: /app/dagster_home/storage/streaming_ingestion_asset using PickledObjectFilesystemIOManager...
+2026-08-27 11:29:27,880 - INFO - Context impl SQLiteImpl.
+2026-08-27 11:29:27,880 - INFO - Will assume non-transactional DDL.
+2026-08-27 11:29:28 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - streaming_ingestion_asset - ASSET_MATERIALIZATION - Materialized value streaming_ingestion_asset.
+2026-08-27 11:29:28 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - streaming_ingestion_asset - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-08-27 11:29:28 +0000 - dagster - DEBUG - realtime_mlsecops_job - a77d0d14-7e68-4f43-b904-1de3c9b9a83d - 11298 - streaming_ingestion_asset - STEP_SUCCESS - Finished execution of step "streaming_ingestion_asset" in 15m42s.
