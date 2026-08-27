@@ -3,14 +3,32 @@ import glob
 import json
 import logging
 import time
+<<<<<<< HEAD
+=======
 
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 import numpy as np
 import pandas as pd
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
+NA_VALUES = ['Infinity', 'NaN', 'inf', '-inf', '']
+
+def get_kafka_producer():
+    for attempt in range(5):
+        try:
+            return KafkaProducer(
+                bootstrap_servers=os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'),
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                acks=1,
+                linger_ms=50,
+                batch_size=262144,
+                compression_type='gzip'
+=======
 # Valeurs "sales" typiques du dataset CIC-IDS2017 (colonnes Flow Bytes/s, Flow Packets/s)
 NA_VALUES = ["", "Infinity", "-Infinity", "infinity", "inf", "-inf", "NaN", "nan", "NULL", "null"]
 
@@ -39,20 +57,22 @@ def get_kafka_producer(bootstrap_servers="redpanda:9092", timeout_s: int = 60):
                 batch_size=256 * 1024,    # 256 KB par lot
                 compression_type="gzip",  # réduit fortement le volume réseau
                 retries=5,
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
             )
-            # perform a quick metadata request to ensure bootstrap succeeded
-            producer.bootstrap_connected()
-            logging.info("KafkaProducer bootstrap succeeded")
-            return producer
         except KafkaError as e:
-            remaining = end_time - time.time()
-            logging.warning(f"Kafka bootstrap attempt {attempt} failed: {e}; retrying, {max(0,int(remaining))}s left")
-            if remaining <= 0:
-                logging.error("Kafka bootstrap timed out")
-                raise
-            sleep = min(5 * (2 ** (attempt - 1)), remaining, 10)
-            time.sleep(sleep)
+            logger.warning(f"Failed to connect to Kafka, attempt {attempt + 1}/5: {e}")
+            time.sleep(2 ** attempt)
+    raise RuntimeError("Could not connect to Kafka after multiple retries.")
 
+<<<<<<< HEAD
+def get_project_root():
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+def _sanitize_chunk(chunk):
+    chunk = chunk.replace([np.inf, -np.inf], np.nan)
+    chunk = chunk.where(pd.notnull(chunk), None)
+    return chunk
+=======
 
 def get_project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
@@ -71,34 +91,38 @@ def _sanitize_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
     chunk[num_cols] = chunk[num_cols].clip(lower=0)
     # astype(object) est nécessaire pour pouvoir stocker None dans des colonnes numériques
     return chunk.astype(object).where(pd.notna(chunk), None)
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
-
-def _chunk_iterators(csv_files, batch_size):
-    """Ouvre un itérateur de chunks par fichier CSV (lecture paresseuse, faible mémoire)."""
-    # CIC-IDS2017 utilise l'encodage Windows-1252 (cp1252) : certains labels
-    # contiennent un tiret 0x96 ("Web Attack – Brute Force"). Lu en UTF-8/latin-1
-    # standard cela produit un caractère de remplacement "" qui casse le
-    # regroupement par label dans dbt/ML. cp1252 décode correctement ce tiret.
-    encoding = os.getenv("CSV_ENCODING", "cp1252")
+def _chunk_iterators(file_paths, chunk_size):
     iterators = []
-    for filepath in csv_files:
+    for fp in file_paths:
         try:
-            reader = pd.read_csv(
-                filepath,
-                chunksize=batch_size,
-                na_values=NA_VALUES,
-                keep_default_na=True,
-                low_memory=False,
-                encoding=encoding,
-                encoding_errors="replace",
-                on_bad_lines="skip",
-            )
-            iterators.append((os.path.basename(filepath), reader))
-        except Exception as e:  # fichier corrompu -> on continue avec les autres
-            logging.warning(f"Impossible d'ouvrir {filepath}: {e}")
+            it = pd.read_csv(fp, chunksize=chunk_size, encoding='cp1252', na_values=NA_VALUES)
+            iterators.append(it)
+        except Exception as e:
+            logger.error(f"Error reading {fp}: {e}")
     return iterators
 
+def run_producer(batch_size=5000, max_records=None, chunk_stride=None):
+    env_max = os.environ.get('STREAM_MAX_RECORDS')
+    if max_records is None and env_max is not None:
+        max_records = int(env_max) if env_max.strip() else None
 
+<<<<<<< HEAD
+    env_stride = os.environ.get('PRODUCER_CHUNK_STRIDE')
+    if chunk_stride is None:
+        chunk_stride = int(env_stride) if env_stride else 100
+    
+    root_dir = get_project_root()
+    data_dir = os.path.join(root_dir, 'data', 'raw')
+    csv_files = glob.glob(os.path.join(data_dir, '*.csv'))
+    
+    if not csv_files:
+        logger.error("No CSV files found in data/raw.")
+        return
+        
+    producer = get_kafka_producer()
+=======
 def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_stride: int | None = None):
     """
     Lit les fichiers CSV dans data/raw/ et les publie dans le topic 'raw-logs'
@@ -148,11 +172,21 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
 
     producer = get_kafka_producer(bootstrap_servers)
 
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
     iterators = _chunk_iterators(csv_files, batch_size)
+    
     total_published = 0
-    start = time.time()
-
+    active_iterators = iterators[:]
+    
     try:
+<<<<<<< HEAD
+        while active_iterators:
+            if max_records is not None and total_published >= max_records:
+                logger.info(f"Reached max_records ({max_records}). Stopping.")
+                break
+                
+            for it in list(active_iterators):
+=======
         # Round-robin : on prend un chunk de chaque fichier à tour de rôle
         # (max_records=None => on lit intégralement tous les fichiers)
         while iterators and _under_limit(total_published_param := total_published):
@@ -161,12 +195,34 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
                 if not _under_limit(total_published):
                     still_active.append((name, reader))
                     continue
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
                 try:
-                    chunk = next(reader)
+                    chunk = next(it)
+                    sanitized_chunk = _sanitize_chunk(chunk)
+                    
+                    records = sanitized_chunk.to_dict('records')
+                    
+                    if max_records is not None:
+                        remaining = max_records - total_published
+                        records = records[:remaining]
+                        
+                    for record in records:
+                        producer.send('raw-logs', record)
+                        
+                    total_published += len(records)
+                    logger.info(f"Published {total_published} records total.")
+                    
+                    if max_records is not None and total_published >= max_records:
+                        break
+                        
                 except StopIteration:
-                    logging.info(f"Fichier terminé : {name}")
-                    continue
+                    active_iterators.remove(it)
                 except Exception as e:
+<<<<<<< HEAD
+                    logger.error(f"Error processing chunk: {e}")
+                    active_iterators.remove(it)
+                    
+=======
                     logging.warning(f"Erreur de lecture sur {name}: {e}")
                     continue
 
@@ -209,12 +265,16 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
                     )
 
             iterators = still_active
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
             producer.flush()
-
-        producer.flush()
+            time.sleep(0.01) # Small sleep to prevent tight loops
     finally:
         producer.close()
+        logger.info("Producer closed.")
 
+<<<<<<< HEAD
+if __name__ == '__main__':
+=======
     elapsed = max(time.time() - start, 1e-6)
     logging.info(
         f"Ingestion terminée : {total_published} événements publiés sur '{topic}' "
@@ -224,4 +284,5 @@ def run_producer(batch_size: int = 5000, max_records: int | None = None, chunk_s
 
 
 if __name__ == "__main__":
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
     run_producer()

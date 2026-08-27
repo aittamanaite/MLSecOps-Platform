@@ -1,14 +1,38 @@
-Cybersecurity Threat Detection MLOps Platform
+# Cybersecurity Threat Detection MLOps Platform
 
-An end-to-end Machine Learning Operations (MLOps) platform for real-time cybersecurity log processing, data transformation, and alerting. The repository uses Dagster for orchestration, Redpanda for Kafka streaming, and dbt with DuckDB for batch transformation.
+## 1. Overview
+An end-to-end MLOps platform for real-time cybersecurity log processing, ML-based anomaly detection, and alerting. The system leverages Dagster for orchestration, Redpanda (Kafka) for streaming, dbt with DuckDB for transformations, and MLflow for model tracking.
 
-This platform is built to:
-- ingest raw network logs from `data/raw/`
-- stream events into Kafka topics `raw-logs`, `cleaned-logs`, and `app-errors`
-- apply cleaning and simple ML inference in a Dagster asset pipeline
-- materialize output data and save inspection exports under `data/exports/`
-- run dbt models against DuckDB at `dbt_project/target/duck.db`
+## 2. What the pipeline does
+1. **Producer**: Ingests raw network traffic logs (CSV) and streams them to Redpanda.
+2. **Cleaner**: Consumes raw logs, standardizes and cleans the data, then streams it to a cleaned logs topic.
+3. **Training**: Trains an Isolation Forest anomaly detection model on cleaned data and logs metrics/models to MLflow.
+4. **Inference**: Applies the trained ML model in real-time on the cleaned stream to detect cyber-attacks.
+5. **Alerting**: Streams detected anomalies to an application errors topic.
+6. **Analytics (dbt)**: Transforms and models the processed data for dashboards and reporting.
+7. **Quality Gates**: Ensures data integrity at every step (raw, cleaned, inference).
 
+<<<<<<< HEAD
+## 3. Architecture diagram
+```text
+[Raw CSVs] 
+    |
+(Quality Gate 1: Raw Data)
+    v
+[Producer] -> [Kafka: raw-logs] 
+    |
+    v
+[Cleaner] -> [Kafka: cleaned-logs]
+    |
+(Quality Gate 2: Cleaned Data)
+    |
+    +-----> [Model Training (MLflow)]
+    |
+    v
+[Inference] -> [Kafka: app-errors]
+    |
+(Quality Gate 3: Inference Output)
+=======
 ## 🚀 What the pipeline does
 
 1. `src/streaming/producer.py` reads CSV files from `data/raw/` and publishes records to Redpanda topic `raw-logs`.
@@ -25,26 +49,54 @@ This platform is built to:
 ```bash
 cd /home/houssame/my_project/MLSecOps-Platform
 docker compose up --build redpanda
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 ```
 
-Redpanda provides Kafka brokers on `localhost:9092` and the broker is used by the streaming assets.
+## 4. Quick Start
+1. Run `docker compose up --build`
+2. Access Dagster UI at `http://localhost:3000`
+3. Access MLflow UI at `http://localhost:5000`
 
-### Start Dagster UI and daemon
+## 5. Services
+To start services individually:
+- **Redpanda**: `docker compose up redpanda`
+- **Dagster**: `dagster dev` (starts both webserver and daemon)
+- **MLflow**: `mlflow ui`
+- **dbt**: Run transformations via `dbt run`
 
-```bash
-docker compose up --build dagster dagster-daemon
-```
+## 6. ML Pipeline
+The platform uses an Isolation Forest model for unsupervised anomaly detection. 
+- **Training**: The model is trained on cleaned network logs.
+- **Tracking**: MLflow is used to track model parameters, metrics (precision, recall, F1), and artifacts.
+- **Registry**: Trained models are registered and versioned in the MLflow Model Registry.
 
-- `dagster` exposes the UI at `http://localhost:3000`
-- `dagster-daemon` runs sensors and schedules
-- Both containers share `PYTHONPATH=/app` and `DAGSTER_HOME=/app/dagster_home`
+## 7. Data Quality Gates
+- **Raw CSV Gate**: Validates the schema and completeness of raw CSV files before ingestion.
+- **Cleaned Data Gate**: Ensures standard formatting, valid IPs, and complete records after the cleaning phase.
+- **Inference Output Gate**: Checks the structure of anomaly alerts and prediction confidence scores.
 
-### Run dbt
+## 8. Data locations
+- Raw Data: `data/raw/`
+- Cleaned Exports: `data/exports/cleaned_logs.jsonl`
+- Inference Alerts: `data/exports/app_errors.jsonl`
+- DuckDB Database: `data/warehouse/`
 
-```bash
-docker compose run --rm dbt
-```
+## 9. Manual commands
+- **Producer**: `python -m src.streaming.producer`
+- **Cleaner**: `python -m src.streaming.cleaner`
+- **Inference**: `python -m src.streaming.inference`
+- **Training**: `python -m src.ml.train`
+- **dbt**: `dbt run` / `dbt test`
 
+<<<<<<< HEAD
+## 10. Project structure
+```text
+MLSecOps-Platform/
+├── data/
+│   ├── raw/
+│   ├── exports/
+│   └── warehouse/
+=======
 This executes `dbt run --profiles-dir /app/dbt_project` inside the `dbt` service. The DuckDB database file is written to:
 
 ```bash
@@ -244,20 +296,39 @@ Ce dépôt est conçu pour une intégration facile avec :
 │   │       └── schema.yml             # Tests de schéma dbt (not_null, unique, accepted_values)
 │   ├── target/              # Artefacts DuckDB et sorties compilées
 │   └── profiles.yml         # Profil dbt DuckDB
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 ├── src/
-│   ├── ingestion/           # Téléchargement et ingestion des données
-│   ├── orchestration/       # Assets et définitions Dagster
-│   │   ├── assets.py        # Assets avec portes de qualité intégrées
-│   │   └── definitions.py   # Jobs, sensors et schedules Dagster
-│   ├── quality/             # Module de qualité des données
+│   ├── streaming/
+│   │   ├── producer.py
+│   │   ├── cleaner.py
+│   │   └── inference.py
+│   ├── orchestration/
 │   │   ├── __init__.py
-│   │   └── data_quality.py  # Règles de validation (complétude, validité, intégrité)
-│   ├── streaming/           # Logique de traitement Kafka (producer/consumer)
-│   └── README.md            # Notes développeur
+│   │   ├── assets.py
+│   │   └── definitions.py
+│   ├── quality/
+│   │   └── data_quality.py
+│   └── ml/
+│       └── train.py
+├── dbt/
 ├── tests/
+<<<<<<< HEAD
+├── docker-compose.yml
+=======
 │   ├── test_ingestion.py    # Tests d'ingestion
 │   └── test_data_quality.py # 29 tests unitaires de qualité des données
 ├── docker-compose.yml       # Orchestration des services
 ├── requirements.txt         # Dépendances Python
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 └── README.md
 ```
+
+## 11. Testing
+Run tests using pytest:
+```bash
+pytest tests/
+```
+
+## 12. Notes
+- For production deployment, ensure Redpanda is properly clustered and MLflow is backed by a persistent database (e.g., PostgreSQL).
+- Environment variables can be adjusted for batch sizing and throughput control.

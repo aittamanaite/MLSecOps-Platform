@@ -1,8 +1,22 @@
+<<<<<<< HEAD
+"""Dagster assets for the MLSecOps streaming and ML pipeline."""
+
+import os
+import glob
+import json
+
+import numpy as np
+import pandas as pd
+from dagster import asset, AssetExecutionContext, MetadataValue
+
+from src.streaming.producer import run_producer, get_project_root
+=======
 import os
 
 from dagster import asset, AssetExecutionContext, MetadataValue
 
 from src.streaming.producer import run_producer, get_project_root, _sanitize_chunk
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 from src.streaming.cleaner import run_cleaner
 from src.streaming.inference import run_inference
 from src.quality.data_quality import (
@@ -11,6 +25,13 @@ from src.quality.data_quality import (
     validate_inference_output,
     DataQualityError,
 )
+<<<<<<< HEAD
+
+
+def _target_records() -> int:
+    """Target volume per micro-batch (overridable via STREAM_MAX_RECORDS)."""
+    return int(os.getenv("STREAM_MAX_RECORDS", "120000"))
+=======
 import json
 import glob
 import pandas as pd
@@ -23,6 +44,7 @@ def _target_records() -> int | None:
     """
     val = int(os.getenv("STREAM_MAX_RECORDS", "0"))
     return None if val <= 0 else val
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
 
 def _read_batch_size() -> int:
@@ -30,17 +52,26 @@ def _read_batch_size() -> int:
 
 
 def _chunk_stride() -> int:
-    """1 = flux séquentiel; >1 = échantillon étalé sur toute la journée (plus d'attaques)."""
+    """1 = sequential; >1 = spread sample across the full day (more attacks)."""
     return max(1, int(os.getenv("PRODUCER_CHUNK_STRIDE", "1")))
 
 
 @asset(
     group_name="streaming_pipeline",
     compute_kind="python",
+<<<<<<< HEAD
+    description="Simulates real-time network traffic by publishing local CSVs to Redpanda (raw-logs).",
+)
+def streaming_ingestion_asset(context: AssetExecutionContext):
+    """Ingest raw CSV files into Kafka/Redpanda with data quality validation."""
+    target = _target_records()
+    context.log.info(f"Starting real-time ingestion to Kafka/Redpanda (target {target} events)...")
+=======
     description="Lit les CSV de data/raw et les publie en temps réel vers Redpanda (raw-logs)."
 )
 def streaming_ingestion_asset(context: AssetExecutionContext):
     context.log.info("Lancement de l'ingestion temps réel vers Redpanda...")
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
     # ── DATA QUALITY GATE: Validate raw CSV files before ingestion ──
     project_root = get_project_root()
@@ -50,9 +81,18 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
     for filepath in csv_files:
         context.log.info(f"Quality check on: {os.path.basename(filepath)}")
         df = pd.read_csv(filepath, keep_default_na=False, nrows=10000)
+<<<<<<< HEAD
+        # Replace infinite values with NaN, mirroring the sanitization the
+        # producer applies (_sanitize_chunk) before publishing to Kafka.
+        # CICIDS2017 flow-rate columns (e.g. Flow Bytes/s) naturally produce
+        # +/-inf when Flow Duration is 0, so this reflects real pipeline data.
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+=======
         # Nettoyage identique à celui du producteur (inf/NaN -> null) AVANT la
         # validation : on vérifie ainsi les données qui seront réellement ingérées.
         df = _sanitize_chunk(df)
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
         try:
             report = validate_raw_csv(df)
             context.log.info(
@@ -60,20 +100,21 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
                 f"({report.passed_rules}/{report.total_rules} rules passed)"
             )
         except DataQualityError as e:
-            context.log.error(
-                f"❌ Raw data quality FAILED for {os.path.basename(filepath)}"
-            )
+            context.log.error(f"❌ Raw data quality FAILED for {os.path.basename(filepath)}")
             context.log.error(e.report.summary())
             raise
 
+<<<<<<< HEAD
+=======
     target = _target_records()
     context.log.info(f"Lancement de l'ingestion temps réel vers Redpanda (objectif {target} événements)...")
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
     events_published = run_producer(
         batch_size=_read_batch_size(),
         max_records=target,
         chunk_stride=_chunk_stride(),
     )
-    context.log.info(f"{events_published} événements poussés dans le flux brut.")
+    context.log.info(f"{events_published} events published to raw stream.")
     context.add_output_metadata(
         {
             "events_published": MetadataValue.int(events_published),
@@ -87,6 +128,16 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
     deps=[streaming_ingestion_asset],
     group_name="streaming_pipeline",
     compute_kind="python",
+<<<<<<< HEAD
+    description="Consumes raw stream, cleans records, and publishes to cleaned-logs.",
+)
+def streaming_cleaning_asset(context: AssetExecutionContext):
+    """Clean streaming data with post-cleaning quality validation."""
+    target = _target_records()
+    context.log.info(f"Starting stream cleaning (target {target} events)...")
+    cleaned = run_cleaner(max_messages=target)
+    context.log.info(f"{cleaned} events cleaned and published.")
+=======
     description="Consomme le flux brut de Redpanda, le nettoie et le publie sur cleaned-logs."
 )
 def streaming_cleaning_asset(context: AssetExecutionContext):
@@ -96,6 +147,7 @@ def streaming_cleaning_asset(context: AssetExecutionContext):
     context.log.info(f"Lancement du processeur de nettoyage de flux (objectif {target} événements)...")
     cleaned = run_cleaner(max_messages=target)
     context.log.info(f"{cleaned} événements nettoyés et publiés.")
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
     # ── DATA QUALITY GATE: Validate cleaned export ──
     project_root = get_project_root()
@@ -128,19 +180,72 @@ def streaming_cleaning_asset(context: AssetExecutionContext):
     return cleaned
 
 
+<<<<<<< HEAD
+@asset(
+    deps=[streaming_cleaning_asset],
+    group_name="ml_pipeline",
+    compute_kind="machine_learning",
+    description="Trains an Isolation Forest anomaly detection model and logs to MLflow.",
+)
+def model_training_asset(context: AssetExecutionContext):
+    """Train the ML model on cleaned data and register with MLflow."""
+    context.log.info("Starting ML model training...")
+
+    try:
+        from src.ml.train import run_training
+
+        project_root = get_project_root()
+        data_path = os.path.join(project_root, "data", "exports", "cleaned_logs.jsonl")
+
+        if not os.path.exists(data_path):
+            context.log.warning(f"Training data not found at {data_path}. Skipping training.")
+            return {"status": "skipped", "reason": "no_training_data"}
+
+        result = run_training(data_path=data_path)
+        context.log.info(
+            f"✅ Model training complete. "
+            f"Metrics: precision={result['metrics'].get('precision', 'N/A'):.4f}, "
+            f"recall={result['metrics'].get('recall', 'N/A'):.4f}, "
+            f"f1={result['metrics'].get('f1', 'N/A'):.4f}"
+        )
+        context.add_output_metadata(
+            {
+                "mlflow_run_id": MetadataValue.text(result.get("run_id", "N/A")),
+                "precision": MetadataValue.float(result["metrics"].get("precision", 0.0)),
+                "recall": MetadataValue.float(result["metrics"].get("recall", 0.0)),
+                "f1_score": MetadataValue.float(result["metrics"].get("f1", 0.0)),
+                "model_version": MetadataValue.text(result.get("model_version", "N/A")),
+            }
+        )
+        return result
+    except Exception as e:
+        context.log.error(f"Model training failed: {e}")
+        raise
+
+
+=======
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 @asset(
     deps=[streaming_cleaning_asset],
     group_name="streaming_pipeline",
     compute_kind="machine_learning",
-    description="Applique le modèle d'IA en temps réel et alerte sur le topic app-errors."
+    description="Applies ML model inference in real-time and alerts on app-errors topic.",
 )
 def model_inference_asset(context: AssetExecutionContext):
+<<<<<<< HEAD
+    """Run ML inference with post-inference quality validation."""
+    target = _target_records()
+    context.log.info(f"Starting ML inference on clean stream (target {target})...")
+    anomalies = run_inference(max_messages=target)
+    context.log.info(f"{anomalies} cyber-attacks detected and sent to alert system.")
+=======
     context.log.info("Lancement de l'inférence du Modèle ML sur le flux propre...")
 
     target = _target_records()
     context.log.info(f"Lancement de l'inférence du Modèle ML sur le flux propre (objectif {target})...")
     anomalies = run_inference(max_messages=target)
     context.log.info(f"{anomalies} cyber-attaques détectées et envoyées au système d'alerte.")
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
     # ── DATA QUALITY GATE: Validate inference output ──
     project_root = get_project_root()
@@ -152,6 +257,19 @@ def model_inference_asset(context: AssetExecutionContext):
                 line = line.strip()
                 if line:
                     records.append(json.loads(line))
+<<<<<<< HEAD
+        if records:
+            try:
+                report = validate_inference_output(records, total_processed=target or 0)
+                context.log.info(
+                    f"✅ Inference output quality PASSED "
+                    f"({report.passed_rules}/{report.total_rules} rules passed)"
+                )
+            except DataQualityError as e:
+                context.log.error("❌ Inference output quality FAILED")
+                context.log.error(e.report.summary())
+                raise
+=======
         try:
             report = validate_inference_output(records, total_processed=target if target else len(records))
             context.log.info(
@@ -162,6 +280,7 @@ def model_inference_asset(context: AssetExecutionContext):
             context.log.error("❌ Inference output quality FAILED")
             context.log.error(e.report.summary())
             raise
+>>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
     context.add_output_metadata(
         {
