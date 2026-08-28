@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   dagster:
     build:
@@ -16,15 +18,7 @@ services:
       - PYTHONPATH=/app
       - DAGSTER_HOME=/app/dagster_home
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
-<<<<<<< HEAD
       - STREAM_MAX_RECORDS=500000
-=======
-      - KAFKA_RAW_TOPIC=raw-logs
-      - KAFKA_CLEANED_TOPIC=cleaned-logs
-      - KAFKA_ALERT_TOPIC=app-errors
-      # --- Volumétrie : 0 = illimité (on exporte TOUT le dataset brut ~2.83M lignes) ---
-      - STREAM_MAX_RECORDS=0
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
       - PRODUCER_BATCH_SIZE=5000
       - CSV_ENCODING=cp1252
       - KAFKA_MAX_POLL_RECORDS=5000
@@ -32,12 +26,8 @@ services:
       - KAFKA_IDLE_POLLS_LIMIT=5
       - KAFKA_IDLE_TIMEOUT_S=120
       - EXPORT_APPEND=false
-<<<<<<< HEAD
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000"]
-=======
-    command: sh -c 'until python -c "import socket,sys; s=socket.socket(); s.settimeout(1); rc=s.connect_ex((\"redpanda\",9092)); s.close(); sys.exit(0 if rc==0 else 1)" >/dev/null 2>&1; do echo "waiting for redpanda"; sleep 1; done; dagster-webserver -h 0.0.0.0 -p 3000'
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
   dagster-daemon:
     build:
@@ -54,15 +44,7 @@ services:
       - PYTHONPATH=/app
       - DAGSTER_HOME=/app/dagster_home
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
-<<<<<<< HEAD
       - STREAM_MAX_RECORDS=500000
-=======
-      - KAFKA_RAW_TOPIC=raw-logs
-      - KAFKA_CLEANED_TOPIC=cleaned-logs
-      - KAFKA_ALERT_TOPIC=app-errors
-      # --- Volumétrie : 0 = illimité (on exporte TOUT le dataset brut ~2.83M lignes) ---
-      - STREAM_MAX_RECORDS=0
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
       - PRODUCER_BATCH_SIZE=5000
       - CSV_ENCODING=cp1252
       - KAFKA_MAX_POLL_RECORDS=5000
@@ -70,12 +52,8 @@ services:
       - KAFKA_IDLE_POLLS_LIMIT=5
       - KAFKA_IDLE_TIMEOUT_S=120
       - EXPORT_APPEND=false
-<<<<<<< HEAD
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     command: ["dagster-daemon", "run"]
-=======
-    command: sh -c 'until python -c "import socket,sys; s=socket.socket(); s.settimeout(1); rc=s.connect_ex((\"redpanda\",9092)); s.close(); sys.exit(0 if rc==0 else 1)" >/dev/null 2>&1; do sleep 1; done; dagster-daemon run'
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
   dbt:
     build:
@@ -109,7 +87,6 @@ services:
       - "29092:29092"
     volumes:
       - redpanda_data:/var/lib/redpanda/data
-<<<<<<< HEAD
 
 
   mlflow:
@@ -125,16 +102,6 @@ services:
     environment:
       - PYTHONPATH=/app
     command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:///app/mlflow.db", "--default-artifact-root", "/app/mlruns", "--allowed-hosts", "*"]
-=======
-    healthcheck:
-      # rpk est fourni par l'image redpanda (curl n'y est pas présent).
-      # On teste le port Kafka directement pour ne pas dépendre de l'admin API.
-      test: ["CMD-SHELL", "rpk cluster health -X brokers=127.0.0.1:9092 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
 
 volumes:
   redpanda_data:
