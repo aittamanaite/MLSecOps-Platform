@@ -1,98 +1,65 @@
-"""Dagster definitions for the MLSecOps platform.
-
-Assembles assets, jobs, sensors, and schedules into a single Definitions object.
-"""
-
 import os
 import glob
 import json
-import hashlib
+import logging
 from datetime import datetime
-
 from dagster import (
-    sensor,
-    SensorEvaluationContext,
-    RunRequest,
-    SkipReason,
-    Definitions,
-    define_asset_job,
+    sensor, 
+    SensorEvaluationContext, 
+    RunRequest, 
+    Definitions, 
+    define_asset_job, 
     ScheduleDefinition,
-    AssetSelection,
+    AssetSelection
 )
 
+# Importation des nouveaux Assets du pipeline Streaming
 from src.orchestration.assets import (
     streaming_ingestion_asset,
     streaming_cleaning_asset,
-    model_inference_asset,
-    model_training_asset,
+    model_inference_asset
 )
 
 # ==========================================
-# 1. Job Definitions
+# 1. Définition du Job Principal (Streaming Micro-Batch)
 # ==========================================
-
-# Streaming pipeline: Ingest -> Clean -> Inference
+# Exécute l'Ingestion (Producer) -> Nettoyage (Cleaner) -> Inférence (Model)
 streaming_pipeline_job = define_asset_job(
     name="realtime_mlsecops_job",
-    selection=AssetSelection.assets(
-        streaming_ingestion_asset,
-        streaming_cleaning_asset,
-        model_inference_asset,
-    ),
-)
-
-# ML Training pipeline: Clean -> Train
-ml_training_job = define_asset_job(
-    name="ml_training_job",
-    selection=AssetSelection.assets(model_training_asset),
-)
-
-# Full pipeline: Ingest -> Clean -> Train + Inference
-full_pipeline_job = define_asset_job(
-    name="full_mlsecops_pipeline_job",
-    selection=AssetSelection.assets(
-        streaming_ingestion_asset,
-        streaming_cleaning_asset,
-        model_training_asset,
-        model_inference_asset,
-    ),
+    selection=(
+        AssetSelection.assets(streaming_ingestion_asset) 
+        | AssetSelection.assets(streaming_cleaning_asset)
+        | AssetSelection.assets(model_inference_asset)
+    )
 )
 
 # ==========================================
-# 2. Sensor
+# 2. Définition du Sensor 
 # ==========================================
-
 @sensor(
     name="csv_streaming_sensor",
     job=streaming_pipeline_job,
-    minimum_interval_seconds=30,
+    minimum_interval_seconds=30
 )
 def csv_streaming_sensor(context: SensorEvaluationContext):
     """
-    Monitor data/raw/ for new or modified CSV files.
-    Triggers a streaming micro-batch cycle on changes.
+    Surveille le répertoire local data/raw/.
+    S'il y a de nouveaux fichiers, il déclenche un cycle (micro-batch) 
+    d'ingestion, de nettoyage et d'inférence ML.
     """
-    data_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../data/raw")
-    )
+    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/raw"))
     if not os.path.exists(data_dir):
-        yield SkipReason("Data directory data/raw/ does not exist.")
         return
-
+        
     csv_files = glob.glob(os.path.join(data_dir, "*.csv"))
-    if not csv_files:
-        yield SkipReason("No CSV files found in data/raw/.")
-        return
-
+    
     current_state = {}
     for filepath in csv_files:
         try:
             stats = os.stat(filepath)
-            current_state[os.path.basename(filepath)] = (
-                f"{stats.st_mtime}_{stats.st_size}"
-            )
+            current_state[os.path.basename(filepath)] = f"{stats.st_mtime}_{stats.st_size}"
         except Exception as e:
-            context.log.warning(f"Cannot stat {filepath}: {e}")
+            context.log.warning(f"Impossible d'accéder aux statistiques de {filepath} : {e}")
 
     last_state_str = context.cursor or "{}"
     try:
@@ -102,43 +69,30 @@ def csv_streaming_sensor(context: SensorEvaluationContext):
 
     if current_state != last_state:
         context.update_cursor(json.dumps(current_state))
-        # Deterministic run key based on state hash (prevents duplicate runs)
-        state_hash = hashlib.md5(
-            json.dumps(current_state, sort_keys=True).encode()
-        ).hexdigest()[:12]
-        context.log.info(
-            "New/modified CSV files detected in data/raw/. "
-            "Launching streaming pipeline..."
-        )
+        context.log.info("Nouveaux fichiers locaux détectés dans data/raw/. Lancement du traitement Streaming...")
+        
         yield RunRequest(
-            run_key=f"streaming_run_{state_hash}",
+            run_key=f"streaming_run_{datetime.now().timestamp()}",
+            message="Changement détecté dans data/raw/, lancement du micro-batch streaming."
         )
-    else:
-        yield SkipReason("No file modifications detected in data/raw/.")
 
-
-# ==========================================
-# 3. Schedules
-# ==========================================
-
+# Planification optionnelle de sécurité (Toutes les heures par exemple)
 hourly_streaming_schedule = ScheduleDefinition(
     name="hourly_streaming_schedule",
     job=streaming_pipeline_job,
-    cron_schedule="0 * * * *",
+    cron_schedule="0 * * * *", 
 )
 
 # ==========================================
-# 4. Definitions Assembly
+# 3. Assemblage global des Definitions
 # ==========================================
-
 defs = Definitions(
     assets=[
-        streaming_ingestion_asset,
-        streaming_cleaning_asset,
-        model_training_asset,
-        model_inference_asset,
+        streaming_ingestion_asset, 
+        streaming_cleaning_asset, 
+        model_inference_asset
     ],
-    jobs=[streaming_pipeline_job, ml_training_job, full_pipeline_job],
+    jobs=[streaming_pipeline_job],
     schedules=[hourly_streaming_schedule],
     sensors=[csv_streaming_sensor],
 )

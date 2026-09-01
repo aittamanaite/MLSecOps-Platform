@@ -1,16 +1,13 @@
-<<<<<<< HEAD
 # Core ML/Data
-=======
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
-fastapi>=0.100.0
-uvicorn>=0.22.0
+fastapi[standard]>=0.100.0
+uvicorn[standard]>=0.22.0
 pandas>=2.0.0
 numpy>=1.24.0
 scikit-learn>=1.3.0
 pydantic>=2.0.0
 requests>=2.31.0
 joblib>=1.3.0
-
+xgboost>=2.0.0,<3.2.0
 # Streaming
 kafka-python>=2.0.0
 
@@ -25,14 +22,10 @@ duckdb>=0.9.0
 
 # ML Experiment Tracking
 mlflow>=2.9.0
-
+prometheus-client>=0.26.0
 # Data download
 gdown
-<<<<<<< HEAD
 
 # Testing & Quality
 pytest>=7.4.0
 pre-commit>=3.5.0
-=======
-kafka-python
->>>>>>> a9b26615667c811ba792659bef9dcc7c1fa578b2
