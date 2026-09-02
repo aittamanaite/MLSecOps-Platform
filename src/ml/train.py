@@ -3,6 +3,7 @@
 Trains an XGBoost classifier on preprocessed CICIDS2017 feature data,
 ensuring strict prevention of data leakage by stripping identifiers and 
 sensitive fields prior to Train/Test splitting and Cross-Validation.
+Includes sample weighting based on fine-grained attack labels to handle rare attack types.
 """
 
 import logging
@@ -21,6 +22,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.utils.class_weight import compute_sample_weight
 import xgboost as xgb
 
 from src.ml.features import FEATURE_NAMES, SENSITIVE_COLUMNS_TO_DROP, extract_features, extract_labels
@@ -36,22 +38,21 @@ def get_project_root() -> Path:
 
 def sanitize_and_prepare_data(
     df_raw: pd.DataFrame,
-) -> Tuple[pd.DataFrame, np.ndarray]:
-    """Strips sensitive/leaky columns and prepares X and y.
-
-    Preventing Data Leakage:
-    - Removes all identifiers (IPs, Ports, Timestamps, Flow IDs).
-    - Separates target labels before cross-validation.
+) -> Tuple[pd.DataFrame, np.ndarray, pd.Series]:
+    """Strips sensitive/leaky columns and prepares X, y, and granular labels.
 
     Args:
-        df_raw: Raw input DataFrame.
+        df_raw: Raw input DataFrame containing a 'label' column.
 
     Returns:
-        Tuple of (X DataFrame containing only FEATURE_NAMES, y target labels array).
+        Tuple of (X DataFrame, y binary array, granular_labels Series).
     """
     logger.info("Sanitizing input data to prevent Data Leakage...")
 
-    # Extract target label vector first
+    # Preserve multi-class granular label column for sample weight calculations
+    granular_labels = df_raw["label"] if "label" in df_raw.columns else None
+
+    # Extract binary target label vector
     y = extract_labels(df_raw)
 
     # Sanitize and extract only the non-leaky numerical feature subset
@@ -64,26 +65,33 @@ def sanitize_and_prepare_data(
         X.drop(columns=leaked, inplace=True, errors="ignore")
 
     logger.info(f"Features prepared successfully. Matrix shape: {X.shape}, Target distribution: {np.bincount(y)}")
-    return X, y
+    return X, y, granular_labels
+
+
+def compute_dampened_sample_weights(granular_labels: pd.Series) -> np.ndarray:
+    """Computes square-root dampened sample weights from multi-class labels.
+
+    Args:
+        granular_labels: Series containing multi-class category strings (e.g. 'DDoS', 'PortScan').
+
+    Returns:
+        Numpy array of per-sample weights.
+    """
+    # Calculate balanced weights per fine-grained label class
+    balanced_weights = compute_sample_weight(class_weight="balanced", y=granular_labels)
+    # Apply square-root dampening so extreme rare attack weights do not cause instability
+    dampened_weights = np.sqrt(balanced_weights)
+    return dampened_weights
 
 
 def evaluate_with_cross_validation(
     X_train: pd.DataFrame,
     y_train: np.ndarray,
+    sample_weight_train: Optional[np.ndarray] = None,
     n_splits: int = 5,
     random_state: int = 42,
 ) -> Dict[str, float]:
-    """Runs Stratified K-Fold Cross-Validation on training data.
-
-    Args:
-        X_train: Training feature set (sanitized).
-        y_train: Training labels.
-        n_splits: Number of CV folds.
-        random_state: Random state seed.
-
-    Returns:
-        Dictionary containing mean cross-validation metrics.
-    """
+    """Runs Stratified K-Fold Cross-Validation on training data using sample weights."""
     logger.info(f"Starting {n_splits}-Fold Stratified Cross-Validation...")
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
@@ -92,6 +100,8 @@ def evaluate_with_cross_validation(
     for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train), 1):
         X_cv_train, X_cv_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
         y_cv_train, y_cv_val = y_train[train_idx], y_train[val_idx]
+        
+        sw_cv_train = sample_weight_train[train_idx] if sample_weight_train is not None else None
 
         model_cv = xgb.XGBClassifier(
             n_estimators=100,
@@ -101,7 +111,7 @@ def evaluate_with_cross_validation(
             eval_metric="logloss",
             n_jobs=-1,
         )
-        model_cv.fit(X_cv_train, y_cv_train)
+        model_cv.fit(X_cv_train, y_cv_train, sample_weight=sw_cv_train)
 
         preds = model_cv.predict(X_cv_val)
 
@@ -109,8 +119,6 @@ def evaluate_with_cross_validation(
         precision_scores.append(precision_score(y_cv_val, preds, zero_division=0))
         recall_scores.append(recall_score(y_cv_val, preds, zero_division=0))
         f1_scores.append(f1_score(y_cv_val, preds, zero_division=0))
-
-        logger.debug(f"Fold {fold} - Accuracy: {accuracy_scores[-1]:.4f}, F1: {f1_scores[-1]:.4f}")
 
     cv_metrics = {
         "cv_mean_accuracy": float(np.mean(accuracy_scores)),
@@ -131,20 +139,10 @@ def train_model(
     random_state: int = 42,
     save_local: bool = True,
 ) -> Tuple[Any, Dict[str, float]]:
-    """Executes full training pipeline with MLflow tracking and leak prevention.
-
-    Args:
-        data_path: Path to raw dataset CSV/Parquet.
-        test_size: Fraction of data for final testing hold-out.
-        random_state: Seed for reproducibility.
-        save_local: Whether to save model.joblib locally in artifacts.
-
-    Returns:
-        Tuple of (trained_model, eval_metrics)
-    """
+    """Executes full training pipeline with sample weighting and MLflow tracking."""
     # 1. Load Raw Data
     if data_path is None:
-        data_path = get_project_root() / "data" / "raw" / "dataset.csv"
+        data_path = get_project_root() / "data" / "exports" / "dataset.parquet"
     else:
         data_path = Path(data_path)
 
@@ -158,12 +156,20 @@ def train_model(
     else:
         df_raw = pd.read_csv(data_path)
 
-    # 2. Sanitize and Drop Sensitive/Leaky Features BEFORE Splitting/CV
-    X, y = sanitize_and_prepare_data(df_raw)
+    # 2. Sanitize Data & Extract Multi-Class Labels
+    X, y, granular_labels = sanitize_and_prepare_data(df_raw)
 
-    # 3. Train / Test Hold-out Split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, stratify=y
+    # 3. Compute Sample Weights from Granular Class Labels
+    if granular_labels is not None:
+        logger.info("Computing square-root dampened class weights from 'label' column...")
+        sample_weights = compute_dampened_sample_weights(granular_labels)
+    else:
+        logger.warning("'label' column missing; proceeding without sample weights.")
+        sample_weights = np.ones(len(y))
+
+    # 4. Train / Test Split (splitting X, y, and sample_weights together)
+    X_train, X_test, y_train, y_test, sw_train, sw_test = train_test_split(
+        X, y, sample_weights, test_size=test_size, random_state=random_state, stratify=y
     )
     logger.info(f"Data split into Train ({len(X_train)}) and Test hold-out ({len(X_test)}).")
 
@@ -180,11 +186,13 @@ def train_model(
         logger.warning(f"MLflow initialization failed: {e}. Training without MLflow tracking.")
         mlflow_enabled = False
 
-    # 4. Perform Cross-Validation (on X_train only)
-    cv_metrics = evaluate_with_cross_validation(X_train, y_train, n_splits=5, random_state=random_state)
+    # 5. Perform Cross-Validation on X_train with sw_train
+    cv_metrics = evaluate_with_cross_validation(
+        X_train, y_train, sample_weight_train=sw_train, n_splits=5, random_state=random_state
+    )
 
-    # 5. Train Final Model on full X_train
-    logger.info("Training final XGBoost classifier...")
+    # 6. Train Final XGBoost Classifier
+    logger.info("Training final XGBoost classifier with sample weights...")
     model = xgb.XGBClassifier(
         n_estimators=100,
         max_depth=6,
@@ -195,20 +203,20 @@ def train_model(
     )
 
     if mlflow_enabled:
-        mlflow.start_run(run_name="xgboost_leak_free_training")
+        mlflow.start_run(run_name="xgboost_weighted_training")
         mlflow.log_params(
             {
                 "n_estimators": 100,
                 "max_depth": 6,
                 "learning_rate": 0.1,
+                "sample_weighting": True,
                 "features_count": X.shape[1],
-                "scaler_used": False,
             }
         )
 
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_train, sample_weight=sw_train)
 
-    # 6. Evaluate on Unseen Hold-out Test Set
+    # 7. Evaluate on Unseen Hold-out Test Set
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else y_pred
 
@@ -222,7 +230,7 @@ def train_model(
 
     all_metrics = {**cv_metrics, **test_metrics}
 
-    logger.info(f"Final Test Evaluation Metrics:")
+    logger.info("Final Test Evaluation Metrics:")
     for k, v in test_metrics.items():
         logger.info(f"  {k}: {v:.4f}")
 
@@ -231,7 +239,7 @@ def train_model(
         mlflow.xgboost.log_model(model, artifact_path="model")
         mlflow.end_run()
 
-    # 7. Save model locally if required
+    # 8. Save Model Locally
     if save_local:
         artifact_dir = get_project_root() / "src" / "ml" / "artifacts"
         artifact_dir.mkdir(parents=True, exist_ok=True)
