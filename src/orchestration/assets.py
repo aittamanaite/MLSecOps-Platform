@@ -41,7 +41,9 @@ def _chunk_stride() -> int:
 def streaming_ingestion_asset(context: AssetExecutionContext):
     """Ingest raw CSV files into Kafka/Redpanda with data quality validation."""
     target = _target_records()
-    context.log.info(f"Starting real-time ingestion to Kafka/Redpanda (target {target} events)...")
+    context.log.info(
+        f"Starting real-time ingestion to Kafka/Redpanda (target {target} events)..."
+    )
 
     # ── DATA QUALITY GATE: Validate raw CSV files before ingestion ──
     project_root = get_project_root()
@@ -64,7 +66,9 @@ def streaming_ingestion_asset(context: AssetExecutionContext):
                 f"({report.passed_rules}/{report.total_rules} rules passed)"
             )
         except DataQualityError as e:
-            context.log.error(f"❌ Raw data quality FAILED for {os.path.basename(filepath)}")
+            context.log.error(
+                f"❌ Raw data quality FAILED for {os.path.basename(filepath)}"
+            )
             context.log.error(e.report.summary())
             raise
 
@@ -144,7 +148,9 @@ def model_training_asset(context: AssetExecutionContext):
         data_path = os.path.join(project_root, "data", "exports", "cleaned_logs.jsonl")
 
         if not os.path.exists(data_path):
-            context.log.warning(f"Training data not found at {data_path}. Skipping training.")
+            context.log.warning(
+                f"Training data not found at {data_path}. Skipping training."
+            )
             return {"status": "skipped", "reason": "no_training_data"}
 
         result = run_training(data_path=data_path)
@@ -157,7 +163,9 @@ def model_training_asset(context: AssetExecutionContext):
         context.add_output_metadata(
             {
                 "mlflow_run_id": MetadataValue.text(result.get("run_id", "N/A")),
-                "precision": MetadataValue.float(result["metrics"].get("precision", 0.0)),
+                "precision": MetadataValue.float(
+                    result["metrics"].get("precision", 0.0)
+                ),
                 "recall": MetadataValue.float(result["metrics"].get("recall", 0.0)),
                 "f1_score": MetadataValue.float(result["metrics"].get("f1", 0.0)),
                 "model_version": MetadataValue.text(result.get("model_version", "N/A")),

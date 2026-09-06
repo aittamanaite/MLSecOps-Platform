@@ -63,7 +63,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-#BA 
+# BA
+
 
 @app.get("/health")
 def health():
@@ -72,7 +73,10 @@ def health():
     Returns the service status and whether the model was loaded at startup.
     """
     model_loaded = getattr(app.state, "model", None) is not None
-    return {"status": "ok" if model_loaded else "degraded", "model_loaded": model_loaded}
+    return {
+        "status": "ok" if model_loaded else "degraded",
+        "model_loaded": model_loaded,
+    }
 
 
 @app.post("/predict")

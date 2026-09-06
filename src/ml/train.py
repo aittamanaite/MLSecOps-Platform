@@ -1,7 +1,7 @@
 """Model training pipeline for network anomaly detection.
 
 Trains an XGBoost classifier on preprocessed CICIDS2017 feature data,
-ensuring strict prevention of data leakage by stripping identifiers and 
+ensuring strict prevention of data leakage by stripping identifiers and
 sensitive fields prior to Train/Test splitting and Cross-Validation.
 Includes sample weighting based on fine-grained attack labels to handle rare attack types.
 """
@@ -25,9 +25,16 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.utils.class_weight import compute_sample_weight
 import xgboost as xgb
 
-from src.ml.features import FEATURE_NAMES, SENSITIVE_COLUMNS_TO_DROP, extract_features, extract_labels
+from src.ml.features import (
+    FEATURE_NAMES,
+    SENSITIVE_COLUMNS_TO_DROP,
+    extract_features,
+    extract_labels,
+)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -61,10 +68,14 @@ def sanitize_and_prepare_data(
     # Double-check: Ensure no sensitive column bypassed feature extraction
     leaked = [col for col in SENSITIVE_COLUMNS_TO_DROP if col in X.columns]
     if leaked:
-        logger.warning(f"Detected leaked columns in feature set! Dropping immediately: {leaked}")
+        logger.warning(
+            f"Detected leaked columns in feature set! Dropping immediately: {leaked}"
+        )
         X.drop(columns=leaked, inplace=True, errors="ignore")
 
-    logger.info(f"Features prepared successfully. Matrix shape: {X.shape}, Target distribution: {np.bincount(y)}")
+    logger.info(
+        f"Features prepared successfully. Matrix shape: {X.shape}, Target distribution: {np.bincount(y)}"
+    )
     return X, y, granular_labels
 
 
@@ -100,8 +111,10 @@ def evaluate_with_cross_validation(
     for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train), 1):
         X_cv_train, X_cv_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
         y_cv_train, y_cv_val = y_train[train_idx], y_train[val_idx]
-        
-        sw_cv_train = sample_weight_train[train_idx] if sample_weight_train is not None else None
+
+        sw_cv_train = (
+            sample_weight_train[train_idx] if sample_weight_train is not None else None
+        )
 
         model_cv = xgb.XGBClassifier(
             n_estimators=100,
@@ -161,7 +174,9 @@ def train_model(
 
     # 3. Compute Sample Weights from Granular Class Labels
     if granular_labels is not None:
-        logger.info("Computing square-root dampened class weights from 'label' column...")
+        logger.info(
+            "Computing square-root dampened class weights from 'label' column..."
+        )
         sample_weights = compute_dampened_sample_weights(granular_labels)
     else:
         logger.warning("'label' column missing; proceeding without sample weights.")
@@ -171,7 +186,9 @@ def train_model(
     X_train, X_test, y_train, y_test, sw_train, sw_test = train_test_split(
         X, y, sample_weights, test_size=test_size, random_state=random_state, stratify=y
     )
-    logger.info(f"Data split into Train ({len(X_train)}) and Test hold-out ({len(X_test)}).")
+    logger.info(
+        f"Data split into Train ({len(X_train)}) and Test hold-out ({len(X_test)})."
+    )
 
     # MLflow Setup
     try:
@@ -183,12 +200,18 @@ def train_model(
         mlflow.set_experiment("network-anomaly-detection")
         mlflow_enabled = True
     except Exception as e:
-        logger.warning(f"MLflow initialization failed: {e}. Training without MLflow tracking.")
+        logger.warning(
+            f"MLflow initialization failed: {e}. Training without MLflow tracking."
+        )
         mlflow_enabled = False
 
     # 5. Perform Cross-Validation on X_train with sw_train
     cv_metrics = evaluate_with_cross_validation(
-        X_train, y_train, sample_weight_train=sw_train, n_splits=5, random_state=random_state
+        X_train,
+        y_train,
+        sample_weight_train=sw_train,
+        n_splits=5,
+        random_state=random_state,
     )
 
     # 6. Train Final XGBoost Classifier
@@ -218,7 +241,9 @@ def train_model(
 
     # 7. Evaluate on Unseen Hold-out Test Set
     y_pred = model.predict(X_test)
-    y_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else y_pred
+    y_proba = (
+        model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else y_pred
+    )
 
     test_metrics = {
         "test_accuracy": float(accuracy_score(y_test, y_pred)),

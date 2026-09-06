@@ -8,7 +8,7 @@ export interface Detection {
   source: DetectionSource
   isAnomaly: boolean
   confidence: number
-  timestamp: string 
+  timestamp: string
   payload: FlowItem
 }
 

@@ -12,7 +12,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Sanitized numeric features (Free from identifiers, IPs, timestamps, and target leakage)
-# old version ? 
+# old version ?
 # FEATURE_NAMES = [
 #     "destination_port",
 #     "flow_duration",
@@ -84,15 +84,39 @@ logger = logging.getLogger(__name__)
 # ]
 
 FEATURE_NAMES = [
-    "flow_duration", "total_fwd_packets", "total_backward_packets",
-    "total_length_of_fwd_packets", "total_length_of_bwd_packets",
-    "fwd_packet_length_max", "fwd_packet_length_min", "fwd_packet_length_mean",
-    "fwd_packet_length_std", "bwd_packet_length_max", "bwd_packet_length_min",
-    "bwd_packet_length_mean", "bwd_packet_length_std", "flow_iat_mean", "flow_iat_std",
-    "flow_iat_max", "flow_iat_min", "fwd_iat_total", "fwd_iat_mean", "fwd_iat_std",
-    "bwd_iat_total", "bwd_iat_mean", "bwd_iat_std", "fin_flag_count", "syn_flag_count",
-    "rst_flag_count", "psh_flag_count", "ack_flag_count", "average_packet_size",
-    "active_mean", "active_std", "idle_mean", "idle_std"
+    "flow_duration",
+    "total_fwd_packets",
+    "total_backward_packets",
+    "total_length_of_fwd_packets",
+    "total_length_of_bwd_packets",
+    "fwd_packet_length_max",
+    "fwd_packet_length_min",
+    "fwd_packet_length_mean",
+    "fwd_packet_length_std",
+    "bwd_packet_length_max",
+    "bwd_packet_length_min",
+    "bwd_packet_length_mean",
+    "bwd_packet_length_std",
+    "flow_iat_mean",
+    "flow_iat_std",
+    "flow_iat_max",
+    "flow_iat_min",
+    "fwd_iat_total",
+    "fwd_iat_mean",
+    "fwd_iat_std",
+    "bwd_iat_total",
+    "bwd_iat_mean",
+    "bwd_iat_std",
+    "fin_flag_count",
+    "syn_flag_count",
+    "rst_flag_count",
+    "psh_flag_count",
+    "ack_flag_count",
+    "average_packet_size",
+    "active_mean",
+    "active_std",
+    "idle_mean",
+    "idle_std",
 ]
 
 # Explicit list of sensitive / leakage columns to strip if present in raw records
@@ -124,7 +148,11 @@ def extract_features(records: Union[List[Dict], pd.DataFrame]) -> pd.DataFrame:
         return pd.DataFrame(columns=FEATURE_NAMES)
 
     # Drop any potential leaky/sensitive columns before feature extraction
-    df.drop(columns=[c for c in SENSITIVE_COLUMNS_TO_DROP if c in df.columns], inplace=True, errors="ignore")
+    df.drop(
+        columns=[c for c in SENSITIVE_COLUMNS_TO_DROP if c in df.columns],
+        inplace=True,
+        errors="ignore",
+    )
 
     # Fill missing expected features with 0.0
     for col in FEATURE_NAMES:

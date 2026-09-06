@@ -43,7 +43,7 @@ export function Dropzone({ onParsed }: DropzoneProps) {
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
-      worker: true, 
+      worker: true,
       chunk: (results) => {
         if (headers.length === 0 && results.meta.fields) {
           headers = results.meta.fields

@@ -28,6 +28,7 @@ from src.quality.data_quality import (
 # Fixtures: Good data factories
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def good_raw_df():
     """Create a minimal valid CICIDS2017-style DataFrame with 79 columns."""
@@ -180,6 +181,7 @@ def good_inference_records():
 # Stage 1: Raw CSV Validation Tests
 # ===========================================================================
 
+
 class TestValidateRawCSV:
     """Tests for validate_raw_csv()."""
 
@@ -295,6 +297,7 @@ class TestValidateRawCSV:
 # Stage 2: Cleaned Records Validation Tests
 # ===========================================================================
 
+
 class TestValidateCleanedRecords:
     """Tests for validate_cleaned_records()."""
 
@@ -330,8 +333,12 @@ class TestValidateCleanedRecords:
                 "total_fwd_packets": 10,
                 "label": "BENIGN",
                 "destination_port": 80,
-                "key1": 1, "key2": 2, "key3": 3,
-                "key4": 4, "key5": 5, "key6": 6,
+                "key1": 1,
+                "key2": 2,
+                "key3": 3,
+                "key4": 4,
+                "key5": 5,
+                "key6": 6,
             }
         ]
         with pytest.raises(DataQualityError) as exc_info:
@@ -348,8 +355,12 @@ class TestValidateCleanedRecords:
                 "flow_duration": 1000,
                 "total_fwd_packets": 10,
                 "label": "BENIGN",
-                "key1": 1, "key2": 2, "key3": 3,
-                "key4": 4, "key5": 5, "key6": 6,
+                "key1": 1,
+                "key2": 2,
+                "key3": 3,
+                "key4": 4,
+                "key5": 5,
+                "key6": 6,
             }
         ]
         with pytest.raises(DataQualityError) as exc_info:
@@ -371,6 +382,7 @@ class TestValidateCleanedRecords:
 # ===========================================================================
 # Stage 3: Inference Output Validation Tests
 # ===========================================================================
+
 
 class TestValidateInferenceOutput:
     """Tests for validate_inference_output()."""
@@ -481,18 +493,21 @@ class TestValidateInferenceOutput:
 # Report and Error Tests
 # ===========================================================================
 
+
 class TestQualityReportAndError:
     """Tests for QualityReport and DataQualityError."""
 
     def test_report_summary_contains_stage(self):
         """Report summary should include the stage name."""
         report = QualityReport(stage="test_stage")
-        report.add_result(RuleResult(
-            rule_name="test_rule",
-            category="completeness",
-            passed=True,
-            message="OK",
-        ))
+        report.add_result(
+            RuleResult(
+                rule_name="test_rule",
+                category="completeness",
+                passed=True,
+                message="OK",
+            )
+        )
         summary = report.summary()
         assert "test_stage" in summary
         assert "PASSED" in summary
@@ -500,9 +515,9 @@ class TestQualityReportAndError:
     def test_report_to_dict(self):
         """Report.to_dict() should produce a serializable dictionary."""
         report = QualityReport(stage="test")
-        report.add_result(RuleResult(
-            rule_name="r1", category="validity", passed=True, message="ok"
-        ))
+        report.add_result(
+            RuleResult(rule_name="r1", category="validity", passed=True, message="ok")
+        )
         d = report.to_dict()
         assert d["stage"] == "test"
         assert d["passed"] is True
@@ -511,9 +526,11 @@ class TestQualityReportAndError:
     def test_data_quality_error_carries_report(self):
         """DataQualityError should carry the failing report."""
         report = QualityReport(stage="fail_test")
-        report.add_result(RuleResult(
-            rule_name="bad", category="integrity", passed=False, message="fail"
-        ))
+        report.add_result(
+            RuleResult(
+                rule_name="bad", category="integrity", passed=False, message="fail"
+            )
+        )
         err = DataQualityError(report)
         assert err.report.passed is False
         assert "fail_test" in str(err)

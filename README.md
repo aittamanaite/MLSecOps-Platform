@@ -14,11 +14,11 @@ An end-to-end MLOps platform for real-time cybersecurity log processing, ML-base
 
 ## 3. Architecture diagram
 ```text
-[Raw CSVs] 
+[Raw CSVs]
     |
 (Quality Gate 1: Raw Data)
     v
-[Producer] -> [Kafka: raw-logs] 
+[Producer] -> [Kafka: raw-logs]
     |
     v
 [Cleaner] -> [Kafka: cleaned-logs]
@@ -46,7 +46,7 @@ To start services individually:
 - **dbt**: Run transformations via `dbt run`
 
 ## 6. ML Pipeline
-The platform uses an Isolation Forest model for unsupervised anomaly detection. 
+The platform uses an Isolation Forest model for unsupervised anomaly detection.
 - **Training**: The model is trained on cleaned network logs.
 - **Tracking**: MLflow is used to track model parameters, metrics (precision, recall, F1), and artifacts.
 - **Registry**: Trained models are registered and versioned in the MLflow Model Registry.
