@@ -109,9 +109,10 @@ export function isAttack(result: Pick<PredictResponse, 'is_anomaly'>): boolean {
 }
 
 export interface BatchPredictResponse {
-  results: PredictResponse[]
+  predictions: PredictResponse[]
+  total_processed: number
+  anomalies_found: number
 }
-
 export interface HealthResponse {
   status: string
   model_loaded: boolean

@@ -14,7 +14,6 @@ function headersMatch(headers: string[]): boolean {
   return ALL_FIELDS.every((f) => set.has(f))
 }
 
-
 function safeNumber(raw: string | undefined): number {
   const n = Number(raw)
   return Number.isFinite(n) ? n : 0
@@ -69,12 +68,11 @@ export function BatchPage() {
   async function handleRun() {
     if (!flows) return
     const results = await batch.run(flows)
-    if (!results) return
+    if (!results) return // covers both cancellation and hard failure
 
     let attackCount = 0
     for (let i = 0; i < results.length; i++) {
       const r = results[i]
-      // FIX: was `r.is_anomaly` directly (always truthy — see api/types.ts).
       const attack = isAttack(r)
       session.recordPrediction({ isAnomaly: attack, confidence: r.confidence, inferenceMs: 0 })
       if (attack) {
@@ -86,25 +84,59 @@ export function BatchPage() {
     setToast(`Batch complete: ${results.length} processed, ${attackCount} attacks found.${skippedNote}`)
   }
 
+  /** Full reset — clears the parsed CSV, mapping, flows, and batch state so a new file can be dropped in. */
+  function handleRunAnother() {
+    setCsv(null)
+    setFlows(null)
+    setToast(null)
+    batch.reset()
+  }
+
+  const showRunAnother = batch.results !== null || batch.cancelled
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-lg text-primary">Batch analyzer</h1>
-
-      <Dropzone onParsed={handleParsed} />
-
-      {needsMapping && csv && <ColumnMapper csvHeaders={csv.headers} onConfirm={handleMappingConfirmed} />}
-
-      {flows && !batch.results && (
-        <div className="flex items-center justify-between rounded-panel border border-hairline bg-panel p-4">
-          <span className="text-sm text-secondary">{flows.length} rows parsed</span>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg text-primary">Batch analyzer</h1>
+        {showRunAnother && (
           <button
-            onClick={handleRun}
-            disabled={batch.running}
-            className="rounded-input bg-accent px-4 py-2 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={handleRunAnother}
+            className="rounded-input border border-hairline px-3 py-1.5 text-xs text-secondary transition-colors hover:text-primary"
           >
-            {batch.running ? 'Running batch…' : 'Run batch'}
+            Run another batch
           </button>
-        </div>
+        )}
+      </div>
+
+      {!showRunAnother && (
+        <>
+          <Dropzone onParsed={handleParsed} />
+
+          {needsMapping && csv && <ColumnMapper csvHeaders={csv.headers} onConfirm={handleMappingConfirmed} />}
+
+          {flows && !batch.results && (
+            <div className="flex items-center justify-between rounded-panel border border-hairline bg-panel p-4">
+              <span className="text-sm text-secondary">{flows.length} rows parsed</span>
+              <div className="flex gap-2">
+                {batch.running && (
+                  <button
+                    onClick={batch.cancel}
+                    className="rounded-input border border-critical/50 px-4 py-2 text-sm text-critical transition-colors hover:bg-critical/10"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={handleRun}
+                  disabled={batch.running}
+                  className="rounded-input bg-accent px-4 py-2 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {batch.running ? 'Running batch…' : 'Run batch'}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {batch.running && (
@@ -113,6 +145,12 @@ export function BatchPage() {
             className="h-full bg-accent transition-all duration-150"
             style={{ width: `${(batch.completed / Math.max(batch.total, 1)) * 100}%` }}
           />
+        </div>
+      )}
+
+      {batch.cancelled && (
+        <div className="rounded-panel border border-warning/40 bg-warning/10 p-4 text-sm text-warning">
+          Batch cancelled after {batch.completed} of {batch.total} rows.
         </div>
       )}
 

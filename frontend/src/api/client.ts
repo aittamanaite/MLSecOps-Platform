@@ -16,9 +16,13 @@ export function setApiBaseUrl(url: string): void {
 interface RequestOptions {
   method?: 'GET' | 'POST'
   body?: unknown
+  signal?: AbortSignal
 }
 
-
+/**
+ * Thin fetch wrapper. Throws ApiError with the parsed response body on any
+ * non-2xx status, so callers can branch on .status (422 / 503 / 500).
+ */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const base = getApiBaseUrl()
   const url = `${base.replace(/\/$/, '')}${path}`
@@ -29,13 +33,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       method: options.method ?? 'GET',
       headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: options.signal,
     })
   } catch (err) {
-    throw new ApiError(
-      err instanceof Error ? err.message : 'Network request failed',
-      0,
-      null,
-    )
+    // Let an intentional cancellation propagate as-is so callers can tell
+    // "user cancelled" apart from "the request actually failed" — wrapping
+    // it in ApiError would make both look identical downstream.
+    if (err instanceof DOMException && err.name === 'AbortError') throw err
+    throw new ApiError(err instanceof Error ? err.message : 'Network request failed', 0, null)
   }
 
   const isJson = response.headers.get('content-type')?.includes('application/json')
