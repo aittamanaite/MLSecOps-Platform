@@ -1,6 +1,6 @@
 """Parquet dataset balancing module.
 
-Performs memory-friendly, streaming under-sampling on large Parquet datasets 
+Performs memory-friendly, streaming under-sampling on large Parquet datasets
 to balance majority (BENIGN) and minority (ATTACK) classes efficiently.
 """
 
@@ -12,7 +12,9 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -51,33 +53,41 @@ def balance_parquet_dataset(
     # 1. First pass: Pass over column data to count class frequencies efficiently
     logger.info("Calculating class distributions...")
     df_labels = parquet_file.read(columns=[target_column]).to_pandas()
-    
+
     attack_indices = df_labels[df_labels[target_column] == 1].index.to_numpy()
     benign_indices = df_labels[df_labels[target_column] == 0].index.to_numpy()
 
     num_attacks = len(attack_indices)
     num_benign = len(benign_indices)
 
-    logger.info(f"Raw Counts -> ATTACK (minority): {num_attacks}, BENIGN (majority): {num_benign}")
+    logger.info(
+        f"Raw Counts -> ATTACK (minority): {num_attacks}, BENIGN (majority): {num_benign}"
+    )
 
     if num_attacks == 0:
         logger.error("No ATTACK samples found in dataset. Cannot balance.")
         return
 
     if num_benign <= num_attacks:
-        logger.info("Dataset is already balanced or majority class is smaller. Copying as is.")
+        logger.info(
+            "Dataset is already balanced or majority class is smaller. Copying as is."
+        )
         df_full = parquet_file.read().to_pandas()
         df_full.to_parquet(output_path, index=False)
         return
 
     # 2. Random under-sampling of majority class
     np.random.seed(random_state)
-    sampled_benign_indices = np.random.choice(benign_indices, size=num_attacks, replace=False)
+    sampled_benign_indices = np.random.choice(
+        benign_indices, size=num_attacks, replace=False
+    )
 
     # Combine indices and sort for sequential memory access
     balanced_indices = np.sort(np.concatenate([attack_indices, sampled_benign_indices]))
 
-    logger.info(f"Under-sampled majority class to {num_attacks} records. Total balanced rows: {len(balanced_indices)}")
+    logger.info(
+        f"Under-sampled majority class to {num_attacks} records. Total balanced rows: {len(balanced_indices)}"
+    )
 
     # 3. Read dataset in chunks and filter according to sampled indices
     logger.info("Filtering and writing balanced dataset...")
@@ -99,4 +109,6 @@ if __name__ == "__main__":
     if prepared_file.exists():
         balance_parquet_dataset(prepared_file, balanced_file)
     else:
-        logger.info(f"Input file {prepared_file} does not exist. Run prepare_data.py first.")
+        logger.info(
+            f"Input file {prepared_file} does not exist. Run prepare_data.py first."
+        )

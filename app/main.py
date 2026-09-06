@@ -15,6 +15,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_
 
 from app.models import BatchPredictRequest, FlowItem
 from src.ml.predict import load_model, predict, predict_batch
+from fastapi.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# BA:
+# Enable CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# BA
+
 
 @app.get("/health")
 def health():
@@ -61,7 +73,10 @@ def health():
     Returns the service status and whether the model was loaded at startup.
     """
     model_loaded = getattr(app.state, "model", None) is not None
-    return {"status": "ok" if model_loaded else "degraded", "model_loaded": model_loaded}
+    return {
+        "status": "ok" if model_loaded else "degraded",
+        "model_loaded": model_loaded,
+    }
 
 
 @app.post("/predict")

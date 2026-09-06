@@ -13,7 +13,9 @@ import pandas as pd
 
 from src.ml.features import extract_features, extract_labels
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -76,7 +78,9 @@ def process_jsonl_logs(
     benign_count = total_records - attack_count
 
     logger.info(f"Successfully wrote {total_records} records to {output_path}")
-    logger.info(f"Dataset Distribution -> BENIGN: {benign_count}, ATTACK: {attack_count}")
+    logger.info(
+        f"Dataset Distribution -> BENIGN: {benign_count}, ATTACK: {attack_count}"
+    )
 
 
 def _transform_chunk(raw_records: List[dict]) -> pd.DataFrame:

@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+  /* Base surfaces */
+  --bg-base: #0b0e14;
+  --bg-panel: #121722;
+  --bg-panel-raised: #171d2b;
+  --border-hairline: #232a3a;
+
+  /* Text */
+  --text-primary: #e7eaf2;
+  --text-secondary: #8791a6;
+  --text-tertiary: #545e75;
+
+
+  --accent: #4c8dff;
+  --accent-hover: #6ea1ff;
+
+
+  --signal-benign: #2fd8c4;
+  --signal-warning: #f2a93b;
+  --signal-critical: #ef4b5b;
+  --signal-critical-bg: rgba(239, 75, 91, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+@keyframes row-flash {
+  0% {
+    background-color: var(--signal-critical-bg);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.animate-row-flash {
+  animation: row-flash 900ms ease-out forwards;
+}
+
+
+@keyframes draw-in {
+  from {
+    stroke-dashoffset: var(--draw-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-draw-in {
+  stroke-dasharray: var(--draw-length, 1000);
+  animation: draw-in 600ms ease-out forwards;
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+.animate-heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+
+.font-mono {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+}

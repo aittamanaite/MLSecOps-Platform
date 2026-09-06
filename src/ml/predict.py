@@ -1,6 +1,6 @@
 """Inference module for network anomaly detection.
 
-Loads the trained XGBoost model (via MLflow or local fallback) and executes 
+Loads the trained XGBoost model (via MLflow or local fallback) and executes
 single-record or batch predictions without feature scaling.
 """
 
@@ -64,7 +64,9 @@ def load_model(model_path: Optional[str] = None) -> Any:
     # 2. Fall back to local artifact
     if model is None:
         if model_path is None:
-            model_path = get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
+            model_path = (
+                get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
+            )
         else:
             model_path = Path(model_path)
 
@@ -125,7 +127,9 @@ def predict(record: Dict[str, Any], model: Any = None) -> Tuple[str, float]:
         return "BENIGN", 0.0
 
 
-def predict_batch(records: List[Dict[str, Any]], model: Any = None) -> List[Dict[str, Any]]:
+def predict_batch(
+    records: List[Dict[str, Any]], model: Any = None
+) -> List[Dict[str, Any]]:
     """Vectorized batch prediction for multiple flow records.
 
     Args:
