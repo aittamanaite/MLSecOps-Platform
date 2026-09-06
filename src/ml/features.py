@@ -125,3 +125,6 @@ def extract_features(records: Union[List[Dict], pd.DataFrame]) -> pd.DataFrame:
     df_features.fillna(0.0, inplace=True)
 
     return df_features
+
+
+preprocess_features = extract_features

@@ -99,14 +99,19 @@ def run_cleaner(max_messages=None, idle_polls_limit=None):
     os.makedirs(export_dir, exist_ok=True)
     export_file = os.path.join(export_dir, 'cleaned_logs.jsonl')
     
-    mode = 'a' if export_append else 'w'
+    if export_append:
+        target_path = export_file
+        file_mode = 'a'
+    else:
+        target_path = export_file + '.tmp'
+        file_mode = 'w'
     
     messages_processed = 0
     attacks_found = 0
     idle_polls = 0
     
     try:
-        with open(export_file, mode, encoding='utf-8') as f:
+        with open(target_path, file_mode, encoding='utf-8') as f:
             while True:
                 if max_messages is not None and messages_processed >= max_messages:
                     logger.info(f"Reached max_messages ({max_messages}). Stopping.")
@@ -142,6 +147,12 @@ def run_cleaner(max_messages=None, idle_polls_limit=None):
                 f.flush()
                 logger.info(f"Cleaned {messages_processed} records. Attacks: {attacks_found}")
                 producer.flush()
+        
+        if not export_append:
+            if messages_processed > 0:
+                os.replace(target_path, export_file)
+            elif os.path.exists(target_path):
+                os.remove(target_path)
     finally:
         consumer.close()
         producer.close()

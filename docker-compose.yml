@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   dagster:
+    user: root
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -32,6 +33,7 @@ services:
       - mlops_network
 
   dagster-daemon:
+    user: root
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -115,7 +117,7 @@ services:
   fastapi-app:
     build:
       context: .
-      dockerfile: app/.dockerfile
+      dockerfile: Dockerfile
     container_name: fastapi_anomaly
     ports:
       - "8000:8000"

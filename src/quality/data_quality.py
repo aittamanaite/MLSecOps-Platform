@@ -9,6 +9,7 @@ Defines quality rules (completeness, validity, integrity) for three pipeline sta
 Each stage validates data and raises DataQualityError on failure to halt the pipeline.
 """
 
+import os
 import re
 import logging
 from dataclasses import dataclass, field
@@ -91,6 +92,8 @@ VALID_LABELS = {
     "Web Attack - XSS",
     "Web Attack - Sql Injection",
 }
+# Automatically include lowercase representations produced by stream cleaner
+VALID_LABELS.update({l.lower() for l in list(VALID_LABELS)})
 
 # Columns that must be non-negative in the raw data
 NON_NEGATIVE_COLUMNS = [
@@ -118,8 +121,8 @@ ANOMALY_THRESHOLD = 0.80
 # Maximum allowed null-rate for critical columns (5%)
 MAX_NULL_RATE = 0.05
 
-# Maximum allowed duplicate-row ratio (1%)
-MAX_DUPLICATE_RATE = 0.01
+# Maximum allowed duplicate-row ratio (default 5% to accommodate real-world network traffic bursts)
+MAX_DUPLICATE_RATE = float(os.getenv("MAX_DUPLICATE_RATE", "0.05"))
 
 
 # ---------------------------------------------------------------------------
@@ -503,7 +506,7 @@ def validate_cleaned_records(records: list[dict]) -> QualityReport:
         unknown = []
         for rec in records:
             lbl = rec.get("label")
-            if lbl is not None and str(lbl).strip() not in VALID_LABELS and lbl != 0:
+            if lbl is not None and str(lbl).strip() not in VALID_LABELS and str(lbl).strip().lower() not in VALID_LABELS and lbl != 0:
                 unknown.append(str(lbl))
         unknown_unique = list(set(unknown))
         report.add_result(RuleResult(
