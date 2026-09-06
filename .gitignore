@@ -414,3 +414,6 @@ __marimo__/
 data/
 *.csv
 *.pcap
+
+
+test_model.py
