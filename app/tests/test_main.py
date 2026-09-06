@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from app.app import app
+from app.main import app
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def mock_model():
 @pytest.fixture
 def client(mock_model):
     """Creates a TestClient with a pre-loaded mock model attached to app.state."""
-    with patch("app.app.load_model", return_value=mock_model):
+    with patch("app.main.load_model", return_value=mock_model):
         with TestClient(app) as test_client:
             yield test_client
 
@@ -78,7 +78,7 @@ def test_health_check_ok(client):
 
 def test_health_check_degraded():
     """Test /health endpoint when model fails to load."""
-    with patch("app.app.load_model", return_value=None):
+    with patch("app.main.load_model", return_value=None):
         with TestClient(app) as client_unloaded:
             response = client_unloaded.get("/health")
             assert response.status_code == 200
@@ -89,7 +89,7 @@ def test_health_check_degraded():
 
 # 2. Single Prediction Endpoint (/predict) Tests
 # -------------------------------------------------------------
-@patch("app.app.predict")
+@patch("app.main.predict")
 def test_predict_single_flow_success(mock_predict_func, client, dummy_flow_item):
     """Test successful single prediction call."""
     mock_predict_func.return_value = ("ATTACK", 0.98)
@@ -111,17 +111,17 @@ def test_predict_invalid_schema(client):
     assert response.status_code == 422  # Unprocessable Entity
 
 
-def test_predict_service_unavailable():
+def test_predict_service_unavailable(dummy_flow_item):
     """Test 503 error when endpoint is called without a loaded model."""
-    with patch("app.app.load_model", return_value=None):
+    with patch("app.main.load_model", return_value=None):
         with TestClient(app) as client_no_model:
-            response = client_no_model.post("/predict", json={})
+            response = client_no_model.post("/predict", json=dummy_flow_item)
             assert response.status_code == 503
 
 
 # 3. Batch Prediction Endpoint (/predict/batch) Tests
 # -------------------------------------------------------------
-@patch("app.app.predict_batch")
+@patch("app.main.predict_batch")
 def test_predict_batch_as_list(mock_batch_func, client, dummy_flow_item):
     """Test batch prediction using direct JSON list payload."""
     mock_batch_func.return_value = [
@@ -139,7 +139,7 @@ def test_predict_batch_as_list(mock_batch_func, client, dummy_flow_item):
     assert len(data["predictions"]) == 2
 
 
-@patch("app.app.predict_batch")
+@patch("app.main.predict_batch")
 def test_predict_batch_as_wrapper_object(mock_batch_func, client, dummy_flow_item):
     """Test batch prediction using BatchPredictRequest wrapper object."""
     mock_batch_func.return_value = [

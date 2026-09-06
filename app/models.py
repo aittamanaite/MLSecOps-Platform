@@ -6,6 +6,9 @@ from pydantic import BaseModel, Field
 class FlowItem(BaseModel):
     """Schema representing a single network traffic flow item """
 
+    model_config = {"extra": "allow"}
+
+
     flow_duration: float = Field(..., description="Duration of the flow in microseconds")
     total_fwd_packets: int = Field(..., description="Total packets in the forward direction")
     total_backward_packets: int = Field(..., description="Total packets in the backward direction")

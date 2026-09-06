@@ -100,6 +100,12 @@ def predict(record: Dict[str, Any], model: Any = None) -> Tuple[str, float]:
         # Convert dictionary to single-row DataFrame and align features
         df_raw = pd.DataFrame([record])
         df_features = preprocess_features(df_raw)
+        if hasattr(model, "feature_names_in_") and model.feature_names_in_ is not None:
+            expected_cols = list(model.feature_names_in_)
+            for col in expected_cols:
+                if col not in df_features.columns:
+                    df_features[col] = 0.0
+            df_features = df_features[expected_cols]
 
         # Execute prediction
         pred_code = int(model.predict(df_features)[0])
@@ -142,6 +148,12 @@ def predict_batch(records: List[Dict[str, Any]], model: Any = None) -> List[Dict
         # Convert list of dicts to DataFrame and preprocess
         df_raw = pd.DataFrame(records)
         df_features = preprocess_features(df_raw)
+        if hasattr(model, "feature_names_in_") and model.feature_names_in_ is not None:
+            expected_cols = list(model.feature_names_in_)
+            for col in expected_cols:
+                if col not in df_features.columns:
+                    df_features[col] = 0.0
+            df_features = df_features[expected_cols]
 
         predictions = model.predict(df_features)
 
@@ -169,3 +181,11 @@ def predict_batch(records: List[Dict[str, Any]], model: Any = None) -> List[Dict
     except Exception as e:
         logger.error(f"Error executing batch prediction: {e}")
         return [{"is_anomaly": "BENIGN", "confidence": 0.0} for _ in records]
+
+
+def predict_record(model: Any, record: Dict[str, Any]) -> float:
+    """Calculates the anomaly/attack probability score for a single streaming record."""
+    label, confidence = predict(record, model)
+    if label == "ATTACK":
+        return float(confidence)
+    return float(1.0 - confidence)

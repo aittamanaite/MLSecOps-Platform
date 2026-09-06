@@ -139,4 +139,5 @@ def extract_features(records: Union[List[Dict], pd.DataFrame]) -> pd.DataFrame:
 
     return df_features
 
+
 preprocess_features = extract_features
