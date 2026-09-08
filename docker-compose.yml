@@ -8,7 +8,7 @@ services:
       dockerfile: src/Dockerfile
     container_name: dagster_orchestrator
     ports:
-      - "3000:3000"
+      - "4300:3000"
     volumes:
       - .:/app
       - dagster_home:/app/dagster_home
@@ -89,10 +89,10 @@ services:
       - --pandaproxy-addr 0.0.0.0:8082
       - --advertise-pandaproxy-addr redpanda:8082
     ports:
-      - "8081:8081"
-      - "8082:8082"
-      - "9092:9092"
-      - "29092:29092"
+      - "4305:8081"
+      - "4306:8082"
+      - "4307:9092"
+      - "4308:29092"
     volumes:
       - redpanda_data:/var/lib/redpanda/data
     networks:
@@ -104,7 +104,7 @@ services:
       dockerfile: src/Dockerfile
     container_name: mlflow_server
     ports:
-      - "5000:5000"
+      - "4301:5000"
     volumes:
       - .:/app
       - mlflow_data:/app/mlruns
@@ -120,7 +120,7 @@ services:
       dockerfile: Dockerfile
     container_name: fastapi_anomaly
     ports:
-      - "8000:8000"
+      - "4302:8000"
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - ENVIRONMENT=development
@@ -139,7 +139,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
-      - "9090:9090"
+      - "4303:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -150,7 +150,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3001:3000"
+      - "4304:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
