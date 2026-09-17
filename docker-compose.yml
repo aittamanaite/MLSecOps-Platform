@@ -170,7 +170,7 @@ services:
       - fastapi-app
     networks:
       - mlops_network
-      
+
 networks:
   mlops_network:
     driver: bridge
