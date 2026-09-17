@@ -23,7 +23,6 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
-
 def load_model(model_path: Optional[str] = None) -> Any:
     """Loads the trained model from MLflow registry or local artifact fallback with fail-fast network protection."""
     model = None
@@ -35,12 +34,12 @@ def load_model(model_path: Optional[str] = None) -> Any:
         import socket
 
         tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
-        
+
         # Quick socket check to see if MLflow port is actually reachable before hitting it
         # This prevents blocking for seconds if the network/service is unresponsive
         parsed_uri = tracking_uri.replace("http://", "").replace("https://", "")
         host, port = (parsed_uri.split(":") + ["5000"])[:2]
-        
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(0.5)  # Fail fast if MLflow doesn't respond in 0.5 seconds
         result = sock.connect_ex((host, int(port)))
@@ -50,12 +49,16 @@ def load_model(model_path: Optional[str] = None) -> Any:
             mlflow.set_tracking_uri(tracking_uri)
             client = MlflowClient(tracking_uri=tracking_uri)
             model_name = "network-anomaly-detector-xgboost"
-            
+
             registered_models = client.search_registered_models(f"name='{model_name}'")
             if registered_models:
                 try:
-                    model = mlflow.xgboost.load_model(f"models:/{model_name}/Production")
-                    logger.info("Successfully loaded model from MLflow Production stage.")
+                    model = mlflow.xgboost.load_model(
+                        f"models:/{model_name}/Production"
+                    )
+                    logger.info(
+                        "Successfully loaded model from MLflow Production stage."
+                    )
                 except Exception:
                     model = mlflow.xgboost.load_model(f"models:/{model_name}/latest")
                     logger.info("Successfully loaded model from MLflow latest version.")
@@ -68,14 +71,18 @@ def load_model(model_path: Optional[str] = None) -> Any:
     # 2. Fall back to local artifact instantly if MLflow didn't provide a model
     if model is None:
         if model_path is None:
-            model_path = get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
+            model_path = (
+                get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
+            )
         else:
             model_path = Path(model_path)
 
         if model_path.exists():
             try:
                 model = joblib.load(model_path)
-                logger.info(f"Successfully loaded local fallback model from: {model_path}")
+                logger.info(
+                    f"Successfully loaded local fallback model from: {model_path}"
+                )
             except Exception as e:
                 logger.error(f"Error loading local model file: {e}")
         else:
