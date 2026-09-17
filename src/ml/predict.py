@@ -23,57 +23,59 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
+
 def load_model(model_path: Optional[str] = None) -> Any:
-    """Loads the trained model from MLflow registry or local artifact fallback.
-
-    Args:
-        model_path: Optional local path to model.joblib.
-
-    Returns:
-        Loaded model object, or None if no model could be loaded.
-    """
+    """Loads the trained model from MLflow registry or local artifact fallback with fail-fast network protection."""
     model = None
 
-    # 1. Try loading from MLflow Registry
+    # 1. Try loading from MLflow with strict fail-fast protection
     try:
         import mlflow
-        import mlflow.xgboost
+        from mlflow.tracking import MlflowClient
+        import socket
 
         tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
-        mlflow.set_tracking_uri(tracking_uri)
+        
+        # Quick socket check to see if MLflow port is actually reachable before hitting it
+        # This prevents blocking for seconds if the network/service is unresponsive
+        parsed_uri = tracking_uri.replace("http://", "").replace("https://", "")
+        host, port = (parsed_uri.split(":") + ["5000"])[:2]
+        
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5)  # Fail fast if MLflow doesn't respond in 0.5 seconds
+        result = sock.connect_ex((host, int(port)))
+        sock.close()
 
-        # Try Production stage first
-        model_uri = "models:/network-anomaly-detector-xgboost/Production"
-        try:
-            model = mlflow.xgboost.load_model(model_uri)
-            logger.info(f"Successfully loaded model from MLflow: {model_uri}")
-        except Exception:
-            # Fall back to latest version
-            model_uri = "models:/network-anomaly-detector-xgboost/latest"
-            try:
-                model = mlflow.xgboost.load_model(model_uri)
-                logger.info(f"Successfully loaded model from MLflow: {model_uri}")
-            except Exception as e:
-                logger.debug(f"Could not load model from MLflow registry: {e}")
+        if result == 0:
+            mlflow.set_tracking_uri(tracking_uri)
+            client = MlflowClient(tracking_uri=tracking_uri)
+            model_name = "network-anomaly-detector-xgboost"
+            
+            registered_models = client.search_registered_models(f"name='{model_name}'")
+            if registered_models:
+                try:
+                    model = mlflow.xgboost.load_model(f"models:/{model_name}/Production")
+                    logger.info("Successfully loaded model from MLflow Production stage.")
+                except Exception:
+                    model = mlflow.xgboost.load_model(f"models:/{model_name}/latest")
+                    logger.info("Successfully loaded model from MLflow latest version.")
+        else:
+            logger.debug("MLflow server port not reachable, skipping network check.")
 
-    except ImportError:
-        logger.debug("MLflow package not available.")
     except Exception as e:
-        logger.debug(f"Error accessing MLflow server: {e}")
+        logger.debug(f"MLflow lookup skipped due to network/client error: {e}")
 
-    # 2. Fall back to local artifact
+    # 2. Fall back to local artifact instantly if MLflow didn't provide a model
     if model is None:
         if model_path is None:
-            model_path = (
-                get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
-            )
+            model_path = get_project_root() / "src" / "ml" / "artifacts" / "model.joblib"
         else:
             model_path = Path(model_path)
 
         if model_path.exists():
             try:
                 model = joblib.load(model_path)
-                logger.info(f"Successfully loaded local model from: {model_path}")
+                logger.info(f"Successfully loaded local fallback model from: {model_path}")
             except Exception as e:
                 logger.error(f"Error loading local model file: {e}")
         else:
