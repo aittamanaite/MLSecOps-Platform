@@ -158,6 +158,19 @@ services:
     networks:
       - mlops_network
 
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: "http://exp.s3.fsbm.ma:4302"
+    container_name: frontend_dashboard
+    ports:
+      - "4309:80"
+    depends_on:
+      - fastapi-app
+    networks:
+      - mlops_network
+      
 networks:
   mlops_network:
     driver: bridge
