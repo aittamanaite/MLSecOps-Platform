@@ -57,7 +57,7 @@ services:
       - KAFKA_IDLE_TIMEOUT_S=120
       - EXPORT_APPEND=false
       - MLFLOW_TRACKING_URI=http://mlflow:5000
-    command: ["dagster-daemon", "run"]
+    command: ["dagster-daemon", "run", "-w", "/app/workspace.yaml"]
     networks:
       - mlops_network
 
