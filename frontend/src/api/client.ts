@@ -6,7 +6,7 @@ export const API_BASE_URL_STORAGE_KEY = 'mlsecops:apiBaseUrl'
 export function getApiBaseUrl(): string {
   const stored = localStorage.getItem(API_BASE_URL_STORAGE_KEY)
   if (stored && stored.trim().length > 0) return stored
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:4302'
 }
 
 export function setApiBaseUrl(url: string): void {

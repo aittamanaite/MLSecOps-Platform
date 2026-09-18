@@ -419,3 +419,8 @@ __marimo__/
 test_model.pyapp/mlflow.db
 test_model.py
 frontend/*.tsbuildinfo
+
+# Generated ML/data artifacts
+data/processed/inferences.jsonl
+data/exports/*.parquet
+*.db

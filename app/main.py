@@ -62,6 +62,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:3000",
         "http://exp.s3.fsbm.ma:4309",
+        "http://localhost:4309",
     ],
     allow_credentials=True,
     allow_methods=["*"],

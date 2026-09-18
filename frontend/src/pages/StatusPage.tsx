@@ -17,7 +17,7 @@ export function StatusPage() {
   const [loadingMetrics, setLoadingMetrics] = useState(false)
 
   // const base = getApiBaseUrl().replace(/\/$/, '').replace(/^https?:\/\//, '')
-  const apiBase = getApiBaseUrl() || 'http://localhost:8000'
+  const apiBase = getApiBaseUrl() || 'http://localhost:4302'
   const base = apiBase.replace(/\/$/, '').replace(/^https?:\/\//, '')
   const host = base.split(':')[0]
 

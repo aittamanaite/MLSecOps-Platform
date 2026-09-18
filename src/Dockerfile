@@ -14,14 +14,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt ./
 
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir \
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt && \
+    pip install \
         dagster dagster-webserver \
         dlt duckdb \
         dbt-core dbt-duckdb \
         kafka-python
-
 COPY . .
 
 RUN useradd -m appuser && chown -R appuser:appuser /app

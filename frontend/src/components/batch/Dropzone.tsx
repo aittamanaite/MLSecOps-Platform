@@ -10,7 +10,6 @@ interface DropzoneProps {
   onParsed: (csv: ParsedCsv) => void
 }
 
-
 export function Dropzone({ onParsed }: DropzoneProps) {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,36 +30,44 @@ export function Dropzone({ onParsed }: DropzoneProps) {
       setError('Only .csv files are supported.')
       return
     }
+
     setError(null)
     setFileName(file.name)
     setFileSizeLabel(formatSize(file.size))
     setIsParsing(true)
     setRowsSoFar(0)
 
-    let headers: string[] = []
-    const rows: Record<string, string>[] = []
-
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
-      worker: true,
-      chunk: (results) => {
-        if (headers.length === 0 && results.meta.fields) {
-          headers = results.meta.fields
+      worker: false,
+
+      complete: (results) => {
+        setIsParsing(false)
+
+        if (results.errors.length > 0) {
+          console.warn('CSV parsing errors:', results.errors)
         }
 
-        for (let i = 0; i < results.data.length; i++) {
-          rows.push(results.data[i])
-        }
+        const headers = results.meta.fields ?? []
+        const rows = results.data
+
         setRowsSoFar(rows.length)
+
+        if (headers.length === 0) {
+          setError('CSV file has no headers.')
+          return
+        }
+
+        onParsed({
+          headers,
+          rows,
+        })
       },
-      complete: () => {
+
+      error: (error) => {
         setIsParsing(false)
-        onParsed({ headers, rows })
-      },
-      error: (err) => {
-        setIsParsing(false)
-        setError(err.message)
+        setError(error.message)
       },
     })
   }
@@ -76,6 +83,7 @@ export function Dropzone({ onParsed }: DropzoneProps) {
         onDrop={(e) => {
           e.preventDefault()
           setDragOver(false)
+
           const file = e.dataTransfer.files[0]
           if (file) parseFile(file)
         }}
@@ -87,20 +95,35 @@ export function Dropzone({ onParsed }: DropzoneProps) {
         {isParsing ? (
           <div className="flex flex-col items-center gap-2">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-            <p className="text-sm text-primary">Parsing {fileName}…</p>
-            <p className="text-xs text-secondary">{rowsSoFar.toLocaleString()} rows read so far</p>
+
+            <p className="text-sm text-primary">
+              Parsing {fileName}…
+            </p>
+
+            <p className="text-xs text-secondary">
+              {rowsSoFar.toLocaleString()} rows read so far
+            </p>
           </div>
         ) : fileName ? (
           <div className="flex flex-col items-center gap-1">
             <p className="text-sm text-primary">{fileName}</p>
-            <p className="text-xs text-secondary">{fileSizeLabel} — click or drop to replace</p>
+
+            <p className="text-xs text-secondary">
+              {fileSizeLabel} — click or drop to replace
+            </p>
           </div>
         ) : (
           <>
-            <p className="text-sm text-primary">Drop a CSV file here, or click to browse</p>
-            <p className="mt-1 text-xs text-secondary">Headers should match the 33 FlowItem fields</p>
+            <p className="text-sm text-primary">
+              Drop a CSV file here, or click to browse
+            </p>
+
+            <p className="mt-1 text-xs text-secondary">
+              Headers should match the 33 FlowItem fields
+            </p>
           </>
         )}
+
         <input
           ref={inputRef}
           type="file"
@@ -108,11 +131,19 @@ export function Dropzone({ onParsed }: DropzoneProps) {
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
-            if (file) parseFile(file)
+
+            if (file) {
+              parseFile(file)
+            }
           }}
         />
       </div>
-      {error && <p className="mt-2 text-xs text-critical">{error}</p>}
+
+      {error && (
+        <p className="mt-2 text-xs text-critical">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
