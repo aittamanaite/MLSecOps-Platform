@@ -424,3 +424,4 @@ frontend/*.tsbuildinfo
 data/processed/inferences.jsonl
 data/exports/*.parquet
 *.db
+data/exports/*

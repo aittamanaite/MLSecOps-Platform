@@ -271,7 +271,7 @@ class TestValidateRawCSV:
         assert "no_infinite_values" in failed_names
 
     def test_negative_values_fails(self, good_raw_df):
-        """Negative values in non-negative columns should be caught."""
+        """100% negative rate (all rows) should still halt the pipeline."""
         df = good_raw_df.copy()
         df["Flow Duration"] = [-100]
         with pytest.raises(DataQualityError) as exc_info:
@@ -279,6 +279,18 @@ class TestValidateRawCSV:
         report = exc_info.value.report
         failed_names = [r.rule_name for r in report.results if not r.passed]
         assert "non_negative_numerics" in failed_names
+
+    def test_negative_values_small_ratio_warns(self, good_raw_df):
+        """A tiny ratio of negatives should warn, not halt the pipeline."""
+        # Build a 200-row DF where only 1 row has a negative Flow Duration
+        import pandas as pd
+        df = pd.concat([good_raw_df] * 200, ignore_index=True)
+        df.loc[0, "Flow Duration"] = -1  # 1/200 = 0.5%, below 1% threshold
+        report = validate_raw_csv(df)  # should NOT raise
+        neg_rule = [r for r in report.results if r.rule_name == "non_negative_numerics"][0]
+        assert not neg_rule.passed  # the rule itself still flags the issue
+        assert neg_rule.severity == "warning"  # but as a warning, not error
+        assert report.passed  # overall report still passes
 
     def test_boundary_port_values_pass(self, good_raw_df):
         """Port values 0 and 65535 should both be valid."""
