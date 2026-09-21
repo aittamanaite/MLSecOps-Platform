@@ -111,7 +111,7 @@ services:
       - mlflow_data:/app/mlruns
     environment:
       - PYTHONPATH=/app
-    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:////app/mlflow.db", "--default-artifact-root", "/app/mlruns", "--allowed-hosts", "*"]
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:////app/mlflow.db", "--default-artifact-root", "file:///app/mlruns", "--allowed-hosts", "*"]
     networks:
       - mlops_network
 
