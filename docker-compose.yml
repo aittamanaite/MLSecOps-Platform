@@ -103,6 +103,7 @@ services:
       context: .
       dockerfile: src/Dockerfile
     container_name: mlflow_server
+    working_dir: /app
     ports:
       - "4301:5000"
     volumes:
