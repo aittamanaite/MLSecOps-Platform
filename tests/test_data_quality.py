@@ -285,6 +285,8 @@ class TestValidateRawCSV:
         # Build a 200-row DF where only 1 row has a negative Flow Duration
         import pandas as pd
         df = pd.concat([good_raw_df] * 200, ignore_index=True)
+        # Vary Flow Duration so rows are unique (avoids duplicate_row_rate failure)
+        df["Flow Duration"] = [1000 + i for i in range(len(df))]
         df.loc[0, "Flow Duration"] = -1  # 1/200 = 0.5%, below 1% threshold
         report = validate_raw_csv(df)  # should NOT raise
         neg_rule = [r for r in report.results if r.rule_name == "non_negative_numerics"][0]
