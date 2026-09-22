@@ -97,5 +97,21 @@ def extract_features(records: Union[List[Dict], pd.DataFrame]) -> pd.DataFrame:
 
     return df_features
 
+def extract_labels(records: List[Dict]) -> np.ndarray:
+    """Extract is_attack labels.
+
+    Args:
+        records: List of dictionaries.
+
+    Returns:
+        Numpy array of labels (1 for attack, 0 for benign).
+    """
+    if not records:
+        return np.array([], dtype=int)
+    
+    # استخراج القيمة مباشرة باستخدام List Comprehension بدلاً من Pandas
+    labels = [int(r.get("is_attack") or 0) for r in records]
+    
+    return np.array(labels, dtype=int)
 
 preprocess_features = extract_features

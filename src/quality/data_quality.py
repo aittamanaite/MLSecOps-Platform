@@ -177,6 +177,11 @@ MAX_NULL_RATE = 0.05
 # Maximum allowed duplicate-row ratio (default 5% to accommodate real-world network traffic bursts)
 MAX_DUPLICATE_RATE = float(os.getenv("MAX_DUPLICATE_RATE", "0.05"))
 
+# Maximum allowed ratio of negative values in flow/packet columns before
+# the check escalates from a cleanable WARNING to a pipeline-stopping ERROR.
+# Below this threshold the values are logged and left for the cleaner to fix.
+MAX_NEGATIVE_RATE = float(os.getenv("MAX_NEGATIVE_RATE", "0.01"))
+
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -192,6 +197,7 @@ class RuleResult:
     passed: bool
     message: str
     details: dict = field(default_factory=dict)
+    severity: str = "error"  # "error" halts the pipeline, "warning" is logged only
 
 
 @dataclass
@@ -215,7 +221,10 @@ class QualityReport:
             self.passed_rules += 1
         else:
             self.failed_rules += 1
-            self.passed = False
+            # Only hard-fail the report for error-severity rules;
+            # warnings are logged but do not halt the pipeline.
+            if result.severity == "error":
+                self.passed = False
 
     def summary(self) -> str:
         status = "PASSED" if self.passed else "FAILED"
@@ -227,7 +236,12 @@ class QualityReport:
             "",
         ]
         for r in self.results:
-            icon = "✅" if r.passed else "❌"
+            if r.passed:
+                icon = "✅"
+            elif r.severity == "warning":
+                icon = "⚠️"
+            else:
+                icon = "❌"
             lines.append(f"  {icon} [{r.category.upper()}] {r.rule_name}: {r.message}")
         return "\n".join(lines)
 
@@ -436,22 +450,41 @@ def validate_raw_csv(df: pd.DataFrame) -> QualityReport:
     )
 
     # V4: Non-negative values for packet/flow columns
+    # A small number of negatives is a cleanable data issue (warning);
+    # widespread negatives signal data corruption (error).
     negative_issues = {}
+    total_negatives = 0
     for col in NON_NEGATIVE_COLUMNS:
         if col in df.columns:
             num_col = pd.to_numeric(df[col], errors="coerce")
-            neg_count = (num_col < 0).sum()
+            neg_count = int((num_col < 0).sum())
             if neg_count > 0:
-                negative_issues[col] = int(neg_count)
+                negative_issues[col] = neg_count
+                total_negatives += neg_count
+    negative_rate = total_negatives / max(row_count, 1)
+    is_severe = negative_rate > MAX_NEGATIVE_RATE
+    if negative_issues:
+        if is_severe:
+            msg = (f"Negative values found in: {negative_issues} "
+                   f"(rate {negative_rate:.4f} exceeds {MAX_NEGATIVE_RATE})")
+            sev = "error"
+        else:
+            msg = (f"Negative values found in: {negative_issues} "
+                   f"(rate {negative_rate:.4f} — within tolerance, will be cleaned)")
+            sev = "warning"
+    else:
+        msg = "All required columns have non-negative values"
+        sev = "error"  # irrelevant when passed=True
     report.add_result(
         RuleResult(
             rule_name="non_negative_numerics",
             category="validity",
             passed=len(negative_issues) == 0,
-            message="All required columns have non-negative values"
-            if not negative_issues
-            else f"Negative values found in: {negative_issues}",
-            details={"negative_columns": negative_issues},
+            message=msg,
+            details={"negative_columns": negative_issues,
+                     "negative_rate": round(negative_rate, 6),
+                     "threshold": MAX_NEGATIVE_RATE},
+            severity=sev,
         )
     )
 

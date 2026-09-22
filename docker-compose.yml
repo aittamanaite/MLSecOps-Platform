@@ -19,7 +19,7 @@ services:
       - PYTHONPATH=/app
       - DAGSTER_HOME=/app/dagster_home
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
-      - STREAM_MAX_RECORDS=40000000
+      - STREAM_MAX_RECORDS=100000
       - PRODUCER_BATCH_SIZE=5000
       - CSV_ENCODING=cp1252
       - KAFKA_MAX_POLL_RECORDS=5000
@@ -57,7 +57,7 @@ services:
       - KAFKA_IDLE_TIMEOUT_S=120
       - EXPORT_APPEND=false
       - MLFLOW_TRACKING_URI=http://mlflow:5000
-    command: ["dagster-daemon", "run", "-w", "/app/workspace.yaml"]
+    command: ["dagster-daemon", "run", "-w", "/app/src/workspace.yaml"]
     networks:
       - mlops_network
 
@@ -103,6 +103,7 @@ services:
       context: .
       dockerfile: src/Dockerfile
     container_name: mlflow_server
+    working_dir: /app
     ports:
       - "4301:5000"
     volumes:
@@ -110,7 +111,7 @@ services:
       - mlflow_data:/app/mlruns
     environment:
       - PYTHONPATH=/app
-    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:////app/mlflow.db", "--default-artifact-root", "/app/mlruns", "--allowed-hosts", "*"]
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:////app/mlflow.db", "--default-artifact-root", "file:///app/mlruns", "--allowed-hosts", "*"]
     networks:
       - mlops_network
 

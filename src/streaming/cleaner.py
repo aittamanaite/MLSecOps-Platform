@@ -69,6 +69,20 @@ def _normalize_label(label):
     return label
 
 
+# Columns (in snake_case) that must be non-negative — negative values are
+# clamped to 0 during cleaning.  Mirrors NON_NEGATIVE_COLUMNS in data_quality.
+_NON_NEGATIVE_KEYS = {
+    "destination_port",
+    "flow_duration",
+    "total_fwd_packets",
+    "total_backward_packets",
+    "total_length_of_fwd_packets",
+    "total_length_of_bwd_packets",
+    "fwd_packet_length_max",
+    "fwd_packet_length_min",
+}
+
+
 def clean_record(record):
     cleaned = {}
     for k, v in record.items():
@@ -82,12 +96,20 @@ def clean_record(record):
         )
         cleaned[new_k] = _coerce_value(v)
 
+    # Clamp non-negative columns: a handful of CICIDS2017 rows contain
+    # negative flow durations or packet counts due to measurement artefacts.
+    for key in _NON_NEGATIVE_KEYS:
+        val = cleaned.get(key)
+        if isinstance(val, (int, float)) and val < 0:
+            cleaned[key] = 0.0
+
     label = cleaned.get("label", "benign")
     label = _normalize_label(label)
     cleaned["label"] = label
     cleaned["is_attack"] = 1 if label != "benign" else 0
     cleaned["ingested_at"] = time.time()
     return cleaned
+
 
 
 def get_project_root():
