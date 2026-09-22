@@ -155,7 +155,7 @@ def train_model(
     """Executes full training pipeline with sample weighting and MLflow tracking."""
     # 1. Load Raw Data
     if data_path is None:
-        data_path = get_project_root() / "data" / "exports" / "dataset.parquet"
+        data_path = get_project_root() / "data" / "exports" / "cleaned_logs_balanced.parquet"
     else:
         data_path = Path(data_path)
 
