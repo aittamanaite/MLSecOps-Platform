@@ -1,3 +1,4 @@
 load_from:
   - python_file:
       relative_path: src/orchestration/definitions.py
+      working_directory: "/app"
