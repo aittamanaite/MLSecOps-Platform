@@ -121,7 +121,7 @@ pytest tests/
 
 This repository ships focused `README.md` files alongside the code so you
 can understand each part without reading every source file. Start with the
-one(s) relevant to your task:
+one(s) relevant to your task :
 
 - **`app/`** — the HTTP API and its Pydantic request schemas.
   See [`app/readme.md`](app/readme.md) for every endpoint
